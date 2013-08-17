@@ -28,14 +28,12 @@ import hudson.ExtensionPoint;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
-import hudson.model.Node;
 import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 
-import java.util.Map;
-
 import jenkins.model.Jenkins;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 
 /**
  * Scores the nodes to determine which is proper to have a task build on.
@@ -45,15 +43,15 @@ public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> i
     /**
      * Score the nodes.
      * 
-     * Update nodeScoreMap to score.
+     * Update nodesScore.
      * A node with the largest score are used primarily.
      * 
      * @param task the root task to build.
      * @param wc
      * @param m currently mapping status. there may be nodes already assigned.
-     * @param nodeScoreMap a map from nodes to their scores
+     * @param nodesScore a map from nodes to their scores
      */
-    public abstract void updateScores(Task task, WorkChunk wc, Mapping m, Map<Node, Integer> nodeScoreMap);
+    public abstract void updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
     
     /**
      * Returns all {@link ScoringRule}s registered to Jenkins.

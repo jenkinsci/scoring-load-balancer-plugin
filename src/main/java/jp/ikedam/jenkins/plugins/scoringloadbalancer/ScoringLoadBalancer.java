@@ -24,12 +24,18 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.StaplerRequest;
 
 import jenkins.model.Jenkins;
 import hudson.DescriptorExtensionList;
@@ -191,23 +197,19 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         
         // Initialize nodes-to-scores map.
         List<ExecutorChunk> executors = new ArrayList<ExecutorChunk>(wc.applicableExecutorChunks());
-        Map<Node,Integer> nodeScoreMap = new HashMap<Node,Integer>();
-        for(ExecutorChunk ec: executors)
-        {
-            nodeScoreMap.put(ec.computer.getNode(), 0);
-        }
+        NodesScore nodesScore = new NodesScore(executors);
         
         // Score nodes by calling enabled ScoringRules.
         for(ScoringRule scoringRule: getScoringRuleList())
         {
-            scoringRule.updateScores(task, wc, m, nodeScoreMap);
+            scoringRule.updateScores(task, wc, m, nodesScore);
         }
         
-        sortExecutors(executors, nodeScoreMap);
+        sortExecutors(executors, nodesScore);
         
         if(isReportScoresEnabled())
         {
-            reportScores(executors, nodeScoreMap);
+            reportScores(executors, nodesScore);
         }
         
         for(ExecutorChunk ec: executors)
@@ -231,35 +233,29 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      * sort ExecuterChunks (that is, nodes) by scores.
      * 
      * @param executors
-     * @param nodeScoreMap
+     * @param nodesScore
      */
-    protected void sortExecutors(List<ExecutorChunk> executors,
-            final Map<Node, Integer> nodeScoreMap)
+    protected void sortExecutors(List<ExecutorChunk> executors, NodesScore nodesScore)
     {
         Collections.shuffle(executors);
-        Collections.sort(executors, new Comparator<ExecutorChunk>(){
-            @Override
-            public int compare(ExecutorChunk o1, ExecutorChunk o2)
-            {
-                return nodeScoreMap.get(o2.computer.getNode()) - nodeScoreMap.get(o1.computer.getNode());
-            }
-        });
+        Collections.sort(executors, nodesScore.new ExecutorComparator());
     }
     
     /**
      * Log scores. For diagnostics purpose.
      * 
      * @param executors
-     * @param nodeScoreMap
+     * @param nodesScore
      */
-    protected void reportScores(List<ExecutorChunk> executors,
-            final Map<Node, Integer> nodeScoreMap)
+    protected void reportScores(List<ExecutorChunk> executors, NodesScore nodesScore)
     {
-        LOGGER.info("Scoring:");
+        List<String> lines = new ArrayList<String>();
+        lines.add("Scoring:");
         for(ExecutorChunk ec: executors)
         {
-            LOGGER.info(String.format("%s: %d", ec.computer.getNode().getNodeName(), nodeScoreMap.get(ec.computer.getNode())));
+            lines.add(String.format("  %20s: %4d", ec.getName(), nodesScore.getScore(ec)));
         }
+        LOGGER.info(StringUtils.join(lines, System.getProperty("line.separator")));
     }
     
     /**
@@ -271,10 +267,8 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     @Override
     public DescriptorImpl getDescriptor()
     {
-        return DESCRIPTOR;
+        return (DescriptorImpl)Jenkins.getInstance().getDescriptorOrDie(getClass());
     }
-    
-    private static DescriptorImpl DESCRIPTOR = new DescriptorImpl();
     
     /**
      * Descriptor for {@link ScoringLoadBalancer}
@@ -333,6 +327,27 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         }
         
         /**
+         * Update and store configuration.
+         * 
+         * @param req
+         * @param json
+         * 
+         * @return 
+         * 
+         * @see hudson.model.Descriptor#configure(org.kohsuke.stapler.StaplerRequest, net.sf.json.JSONObject)
+         */
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json)
+                throws hudson.model.Descriptor.FormException
+        {
+            enabled = json.getBoolean("enabled");
+            reportScoresEnabled = json.getBoolean("reportScoresEnabled");
+            scoringRuleList = req.bindJSONToList(ScoringRule.class, json.get("scoringRuleList"));
+            save();
+            return super.configure(req, json);
+        }
+        
+        /**
          * Returns the name to display.
          * 
          * @return the name to display
@@ -355,4 +370,51 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         }
     }
     
+    public static class NodesScore
+    {
+        private Map<Node, Integer> nodeScoreMap;
+        
+        public NodesScore(Collection<ExecutorChunk> executors)
+        {
+            nodeScoreMap = new HashMap<Node, Integer>(executors.size());
+            for(ExecutorChunk executor: executors)
+            {
+                nodeScoreMap.put(executor.node, 0);
+            }
+        }
+        
+        public Collection<Node> getNodes()
+        {
+            return nodeScoreMap.keySet();
+        }
+        
+        public void addScore(Node node, int score)
+        {
+            nodeScoreMap.put(node, nodeScoreMap.get(node) + score);
+        }
+        
+        public void resetScore(Node node)
+        {
+            nodeScoreMap.put(node, 0);
+        }
+        
+        public int getScore(Node node)
+        {
+            return nodeScoreMap.get(node);
+        }
+        
+        public int getScore(ExecutorChunk executor)
+        {
+            return nodeScoreMap.get(executor.node);
+        }
+        
+        public class ExecutorComparator implements Comparator<ExecutorChunk>
+        {
+            @Override
+            public int compare(ExecutorChunk o1, ExecutorChunk o2)
+            {
+                return getScore(o2) - getScore(o1);
+            }
+        }
+    }
 }

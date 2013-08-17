@@ -23,19 +23,22 @@ THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:section title="${descriptor.displayName}">
-    <f:entry title="${%Enable Scoring Load Balancer}" field="enabled">
-      <f:checkbox />
+    <f:entry title="${%Number of Builds to Track}" field="numberOfBuilds">
+      <f:textbox default="10" />
     </f:entry>
-    <f:advanced>
-      <f:entry title="${%Log Scores}" field="reportScoresEnabled">
-        <f:checkbox />
-      </f:entry>
-    </f:advanced>
-    <f:nested>
-      <f:hetero-list name="scoringRuleList" hasHeader="true"
-        descriptors="${descriptor.allScoringRuleList}" items="${instance.scoringRuleList}"
-        addCaption="${%Add Scoring Rule}" />
-    </f:nested>
-  </f:section>
+    <f:entry title="${%Scale for Scores}" field="scale">
+      <f:textbox default="10" />
+    </f:entry>
+    <f:entry title="${%Scale Adjustment for Older builds}" field="scaleAdjustForOlder">
+      <f:textbox default="-1" />
+    </f:entry>
+    <f:entry title="${%Scale for Success Build}" field="scoreForSuccess">
+      <f:textbox default="1" />
+    </f:entry>
+    <f:entry title="${%Scale for Unstable Build}" field="scoreForUnstable">
+      <f:textbox default="-1" />
+    </f:entry>
+    <f:entry title="${%Scale for Failure Build}" field="scoreForFailure">
+      <f:textbox default="-1" />
+    </f:entry>
 </j:jelly>

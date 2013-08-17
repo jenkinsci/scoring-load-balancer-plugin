@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package jp.ikedam.jenkins.plugins.scoringloadbalancer;
+package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import hudson.Extension;
 import hudson.model.Build;
@@ -32,22 +32,28 @@ import hudson.model.Project;
 import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
+import hudson.model.queue.SubTask;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 
 /**
  * A score keeper depends on build results on each nodes.
  */
 public class BuildResultScoringRule extends ScoringRule
 {
-    private int numberOfBuilds = 10;
-    private int scale = 10;
-    private int scaleAdjustForOlder = -1;
-    private int scoreForSuccess = 1;
-    private int scoreForUnstable = -1;
-    private int scoreForFailure = -1;
+    // default values are defined in config.jelly
+    private int numberOfBuilds;
+    private int scale;
+    private int scaleAdjustForOlder;
+    private int scoreForSuccess;
+    private int scoreForUnstable;
+    private int scoreForFailure;
     
     /**
      * @return the numberOfBuilds
@@ -97,9 +103,22 @@ public class BuildResultScoringRule extends ScoringRule
         return scoreForFailure;
     }
     
-    public BuildResultScoringRule()
+    @DataBoundConstructor
+    public BuildResultScoringRule(
+            int numberOfBuilds,
+            int scale,
+            int scaleAdjustForOlder,
+            int scoreForSuccess,
+            int scoreForUnstable,
+            int scoreForFailure
+    )
     {
-        // TODO Auto-generated constructor stub
+        this.numberOfBuilds = numberOfBuilds;
+        this.scale = scale;
+        this.scaleAdjustForOlder = scaleAdjustForOlder;
+        this.scoreForSuccess = scoreForSuccess;
+        this.scoreForUnstable = scoreForUnstable;
+        this.scoreForFailure = scoreForFailure;
     }
     
     /**
@@ -108,48 +127,51 @@ public class BuildResultScoringRule extends ScoringRule
      * @param task
      * @param wc
      * @param m
-     * @param nodeScoreMap
+     * @param nodesScore
      */
     @Override
     public void updateScores(Task task, WorkChunk wc, Mapping m,
-            Map<Node, Integer> nodeScoreMap)
+            NodesScore nodesScore)
     {
-        if(!(task instanceof Project))
+        for(SubTask subtask: wc)
         {
-            return;
-        }
-        
-        Project<?,?> project = (Project<?, ?>)task;
-        
-        Set<Node> nodeSet = new HashSet<Node>(nodeScoreMap.keySet());
-        Build<?,?> build = project.getLastBuild();
-        for(
-                int pastNum = 0;
-                pastNum < getNumberOfBuilds() && build != null;
-                ++pastNum, build = build.getPreviousBuild())
-        {
-            Node node = build.getBuiltOn();
-            if(!nodeSet.contains(node))
+            if(!(subtask instanceof Project))
             {
-                continue;
+                return;
             }
             
-            int scale = getScale() + getScaleAdjustForOlder() * pastNum;
+            Project<?,?> project = (Project<?, ?>)subtask;
             
-            if(Result.SUCCESS == build.getResult())
+            Set<Node> nodeSet = new HashSet<Node>(nodesScore.getNodes());
+            Build<?,?> build = project.getLastBuild();
+            for(
+                    int pastNum = 0;
+                    pastNum < getNumberOfBuilds() && build != null;
+                    ++pastNum, build = build.getPreviousBuild())
             {
-                nodeScoreMap.put(node, nodeScoreMap.get(node) + getScoreForSuccess() * scale);
-                nodeSet.remove(node);
-            }
-            else if(Result.FAILURE == build.getResult())
-            {
-                nodeScoreMap.put(node, nodeScoreMap.get(node) + getScoreForFailure() * scale);
-                nodeSet.remove(node);
-            }
-            else if(Result.UNSTABLE == build.getResult())
-            {
-                nodeScoreMap.put(node, nodeScoreMap.get(node) + getScoreForUnstable() * scale);
-                nodeSet.remove(node);
+                Node node = build.getBuiltOn();
+                if(!nodeSet.contains(node))
+                {
+                    continue;
+                }
+                
+                int scale = getScale() + getScaleAdjustForOlder() * pastNum;
+                
+                if(Result.SUCCESS == build.getResult())
+                {
+                    nodesScore.addScore(node, getScoreForSuccess() * scale);
+                    nodeSet.remove(node);
+                }
+                else if(Result.FAILURE == build.getResult())
+                {
+                    nodesScore.addScore(node, getScoreForFailure() * scale);
+                    nodeSet.remove(node);
+                }
+                else if(Result.UNSTABLE == build.getResult())
+                {
+                    nodesScore.addScore(node, getScoreForUnstable() * scale);
+                    nodeSet.remove(node);
+                }
             }
         }
     }
