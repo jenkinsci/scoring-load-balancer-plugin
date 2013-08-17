@@ -80,7 +80,7 @@ Extension point
 New scoring rule can be added with extending `ScoringRule`, overriding the following method:
 
 ```
-public abstract void updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
+public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
 ```
 
 You can score nodes by updating `nodesScore`.

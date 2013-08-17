@@ -130,14 +130,14 @@ public class BuildResultScoringRule extends ScoringRule
      * @param nodesScore
      */
     @Override
-    public void updateScores(Task task, WorkChunk wc, Mapping m,
+    public boolean updateScores(Task task, WorkChunk wc, Mapping m,
             NodesScore nodesScore)
     {
         for(SubTask subtask: wc)
         {
             if(!(subtask instanceof Project))
             {
-                return;
+                return true;
             }
             
             Project<?,?> project = (Project<?, ?>)subtask;
@@ -174,6 +174,8 @@ public class BuildResultScoringRule extends ScoringRule
                 }
             }
         }
+        
+        return true;
     }
     
     @Extension

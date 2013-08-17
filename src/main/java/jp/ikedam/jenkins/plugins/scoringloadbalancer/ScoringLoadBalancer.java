@@ -370,44 +370,129 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         }
     }
     
+    /**
+     * Holds scores of nodes.
+     * 
+     * A node with a larger score is preferred to use.
+     */
     public static class NodesScore
     {
-        private Map<Node, Integer> nodeScoreMap;
+        private Map<Node, ExecutorChunk> nodeExecutorMap;
+        private Map<ExecutorChunk, Integer> executorScoreMap;
         
+        /**
+         * Constructor
+         * 
+         * Initialize scores for each nodes to 0.
+         * 
+         * @param executors
+         */
         public NodesScore(Collection<ExecutorChunk> executors)
         {
-            nodeScoreMap = new HashMap<Node, Integer>(executors.size());
+            nodeExecutorMap = new HashMap<Node, ExecutorChunk>(executors.size());
+            executorScoreMap = new HashMap<ExecutorChunk, Integer>(executors.size());
             for(ExecutorChunk executor: executors)
             {
-                nodeScoreMap.put(executor.node, 0);
+                nodeExecutorMap.put(executor.node, executor);
+                executorScoreMap.put(executor, 0);
             }
         }
         
+        /**
+         * Get nodes to score.
+         * 
+         * same to retrieve {@link ExecutorChunk#node} for {@link NodesScore#getExecutorChunks()}
+         * 
+         * @return nodes to score.
+         */
         public Collection<Node> getNodes()
         {
-            return nodeScoreMap.keySet();
+            return nodeExecutorMap.keySet();
         }
         
+        /**
+         * Get executors to score.
+         * 
+         * @return executors to score.
+         */
+        public Collection<ExecutorChunk> getExecutorChunks()
+        {
+            return executorScoreMap.keySet();
+        }
+        
+        /**
+         * Add score to the node.
+         * 
+         * @param node
+         * @param score
+         */
         public void addScore(Node node, int score)
         {
-            nodeScoreMap.put(node, nodeScoreMap.get(node) + score);
+            addScore(nodeExecutorMap.get(node), score);
         }
         
+        /**
+         * Add score to the node.
+         * 
+         * Same to call {@link NodesScore#addScore(Node, int)} for executor.node
+         * 
+         * @param executor
+         * @param score
+         */
+        public void addScore(ExecutorChunk executor, int score)
+        {
+            executorScoreMap.put(executor, executorScoreMap.get(executor) + score);
+        }
+        
+        /**
+         * Reset the score of the node to 0.
+         * 
+         * @param node
+         */
         public void resetScore(Node node)
         {
-            nodeScoreMap.put(node, 0);
+            resetScore(nodeExecutorMap.get(node));
         }
         
+        /**
+         * Reset the score of the node to 0.
+         * 
+         * Same to call {@link NodesScore#resetScore(Node)} for executor.node
+         * 
+         * @param executor
+         */
+        public void resetScore(ExecutorChunk executor)
+        {
+            executorScoreMap.put(executor, 0);
+        }
+        
+        /**
+         * Get the score of the node.
+         * 
+         * @param node
+         * @return
+         */
         public int getScore(Node node)
         {
-            return nodeScoreMap.get(node);
+            return getScore(nodeExecutorMap.get(node));
         }
         
+        /**
+         * Get the score of the node.
+         * 
+         * Same to call {@link NodesScore#getScore(Node)} for executor.node.
+         * 
+         * @param executor
+         * @return
+         */
         public int getScore(ExecutorChunk executor)
         {
-            return nodeScoreMap.get(executor.node);
+            return executorScoreMap.get(executor);
         }
         
+        /**
+         * Comparator for sorting {@link ExecutorChunk}
+         */
         public class ExecutorComparator implements Comparator<ExecutorChunk>
         {
             @Override

@@ -46,12 +46,16 @@ public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> i
      * Update nodesScore.
      * A node with the largest score are used primarily.
      * 
+     * If you want not to score with subsequent {@link ScoringRule}s, return false.
+     * 
      * @param task the root task to build.
-     * @param wc
+     * @param wc Current work chunk (a set of subtasks that must run on the same node).
      * @param m currently mapping status. there may be nodes already assigned.
      * @param nodesScore a map from nodes to their scores
+     * 
+     * @param whether to score with subsequent {@link ScoringRule}. 
      */
-    public abstract void updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
+    public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
     
     /**
      * Returns all {@link ScoringRule}s registered to Jenkins.
