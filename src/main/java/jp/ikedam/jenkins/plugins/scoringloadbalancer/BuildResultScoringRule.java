@@ -23,8 +23,10 @@
  */
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
+import hudson.Extension;
 import hudson.model.Build;
 import hudson.model.Result;
+import hudson.model.Descriptor;
 import hudson.model.Node;
 import hudson.model.Project;
 import hudson.model.Queue.Task;
@@ -38,7 +40,7 @@ import java.util.Set;
 /**
  * A score keeper depends on build results on each nodes.
  */
-public class BuildResultNodeScoreKeeper implements NodeScoreKeeper
+public class BuildResultScoringRule extends ScoringRule
 {
     private int numberOfBuilds = 10;
     private int scale = 10;
@@ -95,7 +97,7 @@ public class BuildResultNodeScoreKeeper implements NodeScoreKeeper
         return scoreForFailure;
     }
     
-    public BuildResultNodeScoreKeeper()
+    public BuildResultScoringRule()
     {
         // TODO Auto-generated constructor stub
     }
@@ -149,6 +151,16 @@ public class BuildResultNodeScoreKeeper implements NodeScoreKeeper
                 nodeScoreMap.put(node, nodeScoreMap.get(node) + getScoreForUnstable() * scale);
                 nodeSet.remove(node);
             }
+        }
+    }
+    
+    @Extension
+    public static class DescriptorImpl extends Descriptor<ScoringRule>
+    {
+        @Override
+        public String getDisplayName()
+        {
+            return Messages.BuildResultScoringRule_DisplayName();
         }
     }
 }

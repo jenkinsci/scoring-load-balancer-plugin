@@ -23,7 +23,11 @@
  */
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
+import hudson.DescriptorExtensionList;
 import hudson.ExtensionPoint;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Describable;
+import hudson.model.Descriptor;
 import hudson.model.Node;
 import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.Mapping;
@@ -31,10 +35,12 @@ import hudson.model.queue.MappingWorksheet.WorkChunk;
 
 import java.util.Map;
 
+import jenkins.model.Jenkins;
+
 /**
  * Scores the nodes to determine which is proper to have a task build on.
  */
-public interface NodeScoreKeeper extends ExtensionPoint
+public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> implements ExtensionPoint, Describable<ScoringRule>
 {
     /**
      * Score the nodes.
@@ -47,5 +53,15 @@ public interface NodeScoreKeeper extends ExtensionPoint
      * @param m currently mapping status. there may be nodes already assigned.
      * @param nodeScoreMap a map from nodes to their scores
      */
-    void updateScores(Task task, WorkChunk wc, Mapping m, Map<Node, Integer> nodeScoreMap);
+    public abstract void updateScores(Task task, WorkChunk wc, Mapping m, Map<Node, Integer> nodeScoreMap);
+    
+    /**
+     * Returns all {@link ScoringRule}s registered to Jenkins.
+     * 
+     * @return list of {@link Descriptor} of {@link ScoringRule}s.
+     */
+    public static DescriptorExtensionList<ScoringRule, Descriptor<ScoringRule>> all()
+    {
+        return Jenkins.getInstance().getDescriptorList(ScoringRule.class);
+    }
 }
