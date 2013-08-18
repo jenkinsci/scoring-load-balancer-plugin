@@ -24,11 +24,11 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import hudson.Extension;
-import hudson.model.Build;
 import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Node;
-import hudson.model.Project;
 import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
@@ -137,15 +137,15 @@ public class BuildResultScoringRule extends ScoringRule
     {
         for(SubTask subtask: wc)
         {
-            if(!(subtask instanceof Project))
+            if(!(subtask instanceof AbstractProject))
             {
                 return true;
             }
             
-            Project<?,?> project = (Project<?, ?>)subtask;
+            AbstractProject<?,?> project = (AbstractProject<?, ?>)subtask;
             
             Set<Node> nodeSet = new HashSet<Node>(nodesScore.getNodes());
-            Build<?,?> build = project.getLastBuild();
+            AbstractBuild<?,?> build = project.getLastBuild();
             for(
                     int pastNum = 0;
                     pastNum < getNumberOfBuilds() && build != null;

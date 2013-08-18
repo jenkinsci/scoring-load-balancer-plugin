@@ -53,7 +53,7 @@ public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> i
      * @param m currently mapping status. there may be nodes already assigned.
      * @param nodesScore a map from nodes to their scores
      * 
-     * @param whether to score with subsequent {@link ScoringRule}. 
+     * @return whether to score with subsequent {@link ScoringRule}. 
      * 
      * @throws Exception if any exception occurs, ScoringLoadBalancer falls back to original LoadBalancer.
      */
