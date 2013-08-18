@@ -32,10 +32,10 @@ THE SOFTWARE.
         <f:checkbox />
       </f:entry>
     </f:advanced>
-    <f:nested>
+    <f:entry title="${%Scoring Rules}" field="scoringRuleList">
       <f:hetero-list name="scoringRuleList" hasHeader="true"
         descriptors="${descriptor.allScoringRuleList}" items="${instance.scoringRuleList}"
         addCaption="${%Add Scoring Rule}" />
-    </f:nested>
+    </f:entry>
   </f:section>
 </j:jelly>
