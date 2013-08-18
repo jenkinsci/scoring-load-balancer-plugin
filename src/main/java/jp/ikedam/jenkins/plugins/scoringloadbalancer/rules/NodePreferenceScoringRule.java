@@ -56,6 +56,8 @@ public class NodePreferenceScoringRule extends ScoringRule
     private static Logger LOGGER = Logger.getLogger(NodePreferenceScoringRule.class.getName());
     
     private int nodesPreferenceScale;
+    private int projectPreferenceScale;
+    
     /**
      * @return the nodesPreferenceScale
      */
@@ -63,8 +65,6 @@ public class NodePreferenceScoringRule extends ScoringRule
     {
         return nodesPreferenceScale;
     }
-    
-    private int projectPreferenceScale;
     
     /**
      * @return the projectPreferenceScale
@@ -74,6 +74,14 @@ public class NodePreferenceScoringRule extends ScoringRule
         return projectPreferenceScale;
     }
     
+    /**
+     * Constructor.
+     * 
+     * Initialized with values a user configured.
+     * 
+     * @param nodesPreferenceScale
+     * @param projectPreferenceScale
+     */
     @DataBoundConstructor
     public NodePreferenceScoringRule(int nodesPreferenceScale, int projectPreferenceScale)
     {
@@ -140,7 +148,7 @@ public class NodePreferenceScoringRule extends ScoringRule
                 }
                 catch(ANTLRException e)
                 {
-                    LOGGER.log(Level.WARNING, String.format("Skipped invalid label: %s (configured in %s)", pref.getLabelExpression(), job.getFullName()), e);
+                    LOGGER.log(Level.WARNING, String.format("Skipped an invalid label: %s (configured in %s)", pref.getLabelExpression(), job.getFullName()), e);
                 }
             }
         }
@@ -148,9 +156,20 @@ public class NodePreferenceScoringRule extends ScoringRule
         return true;
     }
     
+    /**
+     * Manages views for {@link NodePreferenceScoringRule}
+     */
     @Extension
     public static class DescriptorImpl extends Descriptor<ScoringRule>
     {
+        /**
+         * Returns the name to display.
+         * 
+         * Displayed in System Configuration page, as a name of a scoring rule.
+         * 
+         * @return the name to display
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {

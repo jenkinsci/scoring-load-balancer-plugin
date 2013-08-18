@@ -31,14 +31,18 @@ import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- *
+ * Holds the configuration that which nodes are preferred to use.
+ * 
+ * Used by {@link BuildPreferenceJobProperty}.
  */
 public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
 {
     private String labelExpression;
     
     /**
-     * @return the labelExpression
+     * Returns the label expression to determine target nodes.
+     * 
+     * @return the label expression
      */
     public String getLabelExpression()
     {
@@ -48,13 +52,23 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
     private int preference;
     
     /**
-     * @return the preference
+     * Returns the preference score for target nodes.
+     * 
+     * @return the preference score
      */
     public int getPreference()
     {
         return preference;
     }
     
+    /**
+     * Constructor.
+     * 
+     * Initialized with values a user configured.
+     * 
+     * @param labelExpression
+     * @param preference
+     */
     @DataBoundConstructor
     public BuildPreference(String labelExpression, int preference)
     {
@@ -62,9 +76,20 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
         this.preference = preference;
     }
     
+    /**
+     * Manages view for {@link BuildPreference}.
+     */
     @Extension
     public static class DescriptorImpl extends Descriptor<BuildPreference>
     {
+        /**
+         * Returns the name to display.
+         * 
+         * Never used.
+         * 
+         * @return the name to display
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {

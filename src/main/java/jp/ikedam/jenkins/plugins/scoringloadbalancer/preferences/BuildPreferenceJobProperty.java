@@ -37,7 +37,7 @@ import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 
 /**
- *
+ * Holds configuration that which nodes are preferred by a project.
  */
 public class BuildPreferenceJobProperty extends JobProperty<AbstractProject<?, ?>>
 {
@@ -49,33 +49,70 @@ public class BuildPreferenceJobProperty extends JobProperty<AbstractProject<?, ?
     private List<BuildPreference> buildPreferenceList;
     
     /**
-     * @return the buildPreferenceList
+     * Returns the list of preferences.
+     * 
+     * Each preferences holds configuration that which nodes are how preferred for this project.
+     * 
+     * @return the list of preferences
      */
     public List<BuildPreference> getBuildPreferenceList()
     {
         return buildPreferenceList;
     }
     
+    /**
+     * Constructor.
+     * 
+     * Initialized with values a user configured.
+     * 
+     * @param buildPreferenceList
+     */
     @DataBoundConstructor
     public BuildPreferenceJobProperty(List<BuildPreference> buildPreferenceList)
     {
         this.buildPreferenceList = buildPreferenceList;
     }
     
+    /**
+     * Manages views for {@link BuildPreferenceJobProperty}
+     */
     @Extension
     public static class DescriptorImpl extends JobPropertyDescriptor
     {
+        /**
+         * Returns the property name to hold configuration of {@link BuildPreferenceJobProperty}
+         * 
+         * @return the property name
+         */
         public String getPropertyName()
         {
             return PROPERTYNAME;
         }
         
+        /**
+         * Returns the name to display
+         * 
+         * Displayed in Project Configuration page as a property name.
+         * 
+         * @return the name to display
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {
             return Messages.BuildPreferenceJobProperty_DisplayName();
         }
         
+        /**
+         * Create a new instance {@link BuildPreferenceJobProperty}
+         * from configurations specified by a user in System Configuration page.
+         * 
+         * @param req
+         * @param formData
+         * @return
+         * @throws hudson.model.Descriptor.FormException
+         * @see hudson.model.JobPropertyDescriptor#newInstance(org.kohsuke.stapler.StaplerRequest, net.sf.json.JSONObject)
+         */
         @Override
         public BuildPreferenceJobProperty newInstance(StaplerRequest req,
                 JSONObject formData)

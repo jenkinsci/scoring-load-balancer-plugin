@@ -103,6 +103,18 @@ public class BuildResultScoringRule extends ScoringRule
         return scoreForFailure;
     }
     
+    /**
+     * Constructor.
+     * 
+     * Initialized with values a user configured.
+     * 
+     * @param numberOfBuilds
+     * @param scale
+     * @param scaleAdjustForOlder
+     * @param scoreForSuccess
+     * @param scoreForUnstable
+     * @param scoreForFailure
+     */
     @DataBoundConstructor
     public BuildResultScoringRule(
             int numberOfBuilds,
@@ -122,7 +134,7 @@ public class BuildResultScoringRule extends ScoringRule
     }
     
     /**
-     * Scores the nodes depends on build results on those nodes.
+     * Scores the nodes depending on build results on those nodes.
      * 
      * @param task
      * @param wc
@@ -178,9 +190,20 @@ public class BuildResultScoringRule extends ScoringRule
         return true;
     }
     
+    /**
+     * Manages views for {@link BuildResultScoringRule}
+     */
     @Extension
     public static class DescriptorImpl extends Descriptor<ScoringRule>
     {
+        /**
+         * Returns the name to display.
+         * 
+         * Displayed in System Configuration page, as a name of a scoring rule.
+         * 
+         * @return the name to display
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {

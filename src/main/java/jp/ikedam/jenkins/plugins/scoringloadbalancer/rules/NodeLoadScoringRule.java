@@ -36,11 +36,13 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesSc
 
 /**
  * Score nodes depending on their loads.
- *
  */
 public class NodeLoadScoringRule extends ScoringRule
 {
+    // default values are defined in config.jelly.
     private int scale;
+    private int scoreForIdleExecutor;
+    private int scoreForBusyExecutor;
     
     /**
      * @return the scale
@@ -50,8 +52,6 @@ public class NodeLoadScoringRule extends ScoringRule
         return scale;
     }
     
-    private int scoreForIdleExecutor;
-    
     /**
      * @return the scoreForIdleExecutor
      */
@@ -59,8 +59,6 @@ public class NodeLoadScoringRule extends ScoringRule
     {
         return scoreForIdleExecutor;
     }
-    
-    private int scoreForBusyExecutor;
     
     /**
      * @return the scoreForBusyExecutor
@@ -70,6 +68,15 @@ public class NodeLoadScoringRule extends ScoringRule
         return scoreForBusyExecutor;
     }
     
+    /**
+     * Constructor.
+     * 
+     * Initialized with values a user configured.
+     * 
+     * @param scale
+     * @param scoreForIdleExecutor
+     * @param scoreForBusyExecutor
+     */
     @DataBoundConstructor
     public NodeLoadScoringRule(
             int scale,
@@ -104,7 +111,7 @@ public class NodeLoadScoringRule extends ScoringRule
             int idle = ec.capacity();
             for(int i = 0; i < m.size(); ++i)
             {
-                // count about to be assigned executors
+                // count executors about to be assigned
                 if(ec.equals(m.assigned(i)))
                 {
                     idle -= m.get(i).size();
@@ -120,9 +127,20 @@ public class NodeLoadScoringRule extends ScoringRule
         return true;
     }
     
+    /**
+     * Manages views for {@link NodeLoadScoringRule}
+     */
     @Extension
     public static class DescriptorImpl extends Descriptor<ScoringRule>
     {
+        /**
+         * Returns the name to display.
+         * 
+         * Displayed in System Configuration page, as a name of a scoring rule.
+         * 
+         * @return the name to display
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {

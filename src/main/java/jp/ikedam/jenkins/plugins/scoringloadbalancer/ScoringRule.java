@@ -27,6 +27,7 @@ import hudson.DescriptorExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Describable;
+import hudson.model.LoadBalancer;
 import hudson.model.Descriptor;
 import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.Mapping;
@@ -36,17 +37,17 @@ import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 
 /**
- * Scores the nodes to determine which is proper to have a task build on.
+ * Scores nodes to determine which is proper to have a task build on.
  */
 public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> implements ExtensionPoint, Describable<ScoringRule>
 {
     /**
      * Score the nodes.
      * 
-     * Update nodesScore.
-     * A node with the largest score are used primarily.
+     * Update scores by calling methods of nodesScore.
+     * A node with a larger score is preferred to use.
      * 
-     * If you want not to score with subsequent {@link ScoringRule}s, return false.
+     * If you want not to have scores updated with subsequent {@link ScoringRule}s, return false.
      * 
      * @param task the root task to build.
      * @param wc Current work chunk (a set of subtasks that must run on the same node).
@@ -55,7 +56,7 @@ public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> i
      * 
      * @return whether to score with subsequent {@link ScoringRule}. 
      * 
-     * @throws Exception if any exception occurs, ScoringLoadBalancer falls back to original LoadBalancer.
+     * @throws Exception if any exception occurs, {@link ScoringLoadBalancer} falls back to a {@link LoadBalancer} registered originally.
      */
     public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore) throws Exception;
     

@@ -32,13 +32,17 @@ import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 
 /**
- *
+ * Holds configuration that how this node is preferred.
  */
 public class BuildPreferenceNodeProperty extends NodeProperty<Node>
 {
     private int preference;
     
     /**
+     * Returns how this node is preferred.
+     * 
+     * Larger value is more preferred.
+     * 
      * @return the preference
      */
     public int getPreference()
@@ -46,15 +50,33 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node>
         return preference;
     }
     
+    /**
+     * Constructor.
+     * 
+     * Initialized with values a user configured.
+     * 
+     * @param preference
+     */
     @DataBoundConstructor
     public BuildPreferenceNodeProperty(int preference)
     {
         this.preference = preference;
     }
     
+    /**
+     * Manage views for {@link BuildPreferenceNodeProperty}
+     */
     @Extension
     public static class DescriptorImpl extends NodePropertyDescriptor
     {
+        /**
+         * Returns the name to display.
+         * 
+         * Displayed in Node Configuration page as a property name.
+         * 
+         * @return Returns the name to display.
+         * @see hudson.model.Descriptor#getDisplayName()
+         */
         @Override
         public String getDisplayName()
         {

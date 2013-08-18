@@ -64,6 +64,11 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 {
     private static final Logger LOGGER = Logger.getLogger(ScoringLoadBalancer.class.getName());
     
+    /**
+     * Replaces {@link LoadBalancer} registered to Jenkins to ScoringLoadBalancer.
+     * 
+     * The {@link LoadBalancer} originally registered are used as one to fall back.
+     */
     @Initializer(after=InitMilestone.PLUGINS_STARTED, fatal=false)
     public static void installLoadBalancer()
     {
@@ -76,7 +81,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     private LoadBalancer fallback;
     
     /**
-     * @return LoadBalancer to fall back
+     * @return {@link LoadBalancer} to fall back
      */
     public LoadBalancer getFallback()
     {
@@ -237,7 +242,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     }
     
     /**
-     * sort ExecuterChunks (that is, nodes) by scores.
+     * sort {@link ExecutorChunk}s (that is, nodes) by scores.
      * 
      * @param executors
      * @param nodesScore
@@ -356,6 +361,8 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         
         /**
          * Returns the name to display.
+         * 
+         * Displayed in System Configuration page as a section title.
          * 
          * @return the name to display
          * @see hudson.model.Descriptor#getDisplayName()
