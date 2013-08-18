@@ -24,12 +24,12 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:optionalBlock name="${descriptor.propertyName}" title="${descriptor.displayName}" checked="${instance != null}">
-    <f:block>
+    <f:entry title="${%Preferences}" field="buildPreferenceList">
       <f:repeatableProperty
         field="buildPreferenceList"
         add="${%Add New Preference}"
         header="${%Node Preference}"
       />
-    </f:block>
+    </f:entry>
   </f:optionalBlock>
 </j:jelly>
