@@ -143,7 +143,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         
         try
         {
-            if(!isEnabled() && assignGreedily(m, task, worksheet, scoringRuleList))
+            if(isEnabled() && assignGreedily(m, task, worksheet, scoringRuleList))
             {
                 return m;
             }
