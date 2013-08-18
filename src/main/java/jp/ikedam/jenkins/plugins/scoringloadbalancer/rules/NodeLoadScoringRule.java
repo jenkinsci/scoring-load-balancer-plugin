@@ -92,10 +92,12 @@ public class NodeLoadScoringRule extends ScoringRule
      * 
      * @return
      * 
+     * @throws Exception
+     * 
      * @see jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule#updateScores(hudson.model.Queue.Task, hudson.model.queue.MappingWorksheet.WorkChunk, hudson.model.queue.MappingWorksheet.Mapping, jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore)
      */
     @Override
-    public boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore)
+    public boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore) throws Exception
     {
         for(ExecutorChunk ec: nodesScore.getExecutorChunks())
         {
@@ -107,7 +109,7 @@ public class NodeLoadScoringRule extends ScoringRule
                 // count about to be assigned executors
                 if(ec.equals(m.assigned(i)))
                 {
-                    idle -= 1;
+                    idle -= m.get(i).size();
                 }
             }
             int busy = ec.computer.countExecutors() - idle;

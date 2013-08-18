@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
@@ -140,25 +141,29 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         // retrieve scoringRuleList not to behave inconsistently when configuration is updated.
         List<ScoringRule> scoringRuleList = getScoringRuleList();
         
-        if(isEnabled() && assignGreedily(m, task, worksheet, scoringRuleList))
+        try
         {
-            return m;
-        }
-        else
-        {
-            if(getFallback() != null)
+            if(!isEnabled() && assignGreedily(m, task, worksheet, scoringRuleList))
             {
-                return getFallback().map(task, worksheet);
-            }
-            else
-            {
-                return null;
+                return m;
             }
         }
+        catch(Exception e)
+        {
+            LOGGER.log(Level.SEVERE, "Failed to load balance with scores: fallback to preconfigured LoadBalancer", e);
+        }
+        
+        if(getFallback() != null)
+        {
+            return getFallback().map(task, worksheet);
+        }
+        
+        LOGGER.severe("No LoadBalancer to fall back is defined: Builds are NEVER launched.");
+        return null;
     }
     
     private boolean assignGreedily(Mapping m, Task task, MappingWorksheet worksheet,
-            List<ScoringRule> scoringRuleList)
+            List<ScoringRule> scoringRuleList) throws Exception
     {
         return assignGreedily(m, task, worksheet, scoringRuleList, 0);
     }
@@ -183,9 +188,11 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      * @param scoringRuleList
      * @param targetWorkChunk
      * @return　whether an proper assignment is found.
+     * 
+     * @throws Exception 
      */
     private boolean assignGreedily(Mapping m, Task task, MappingWorksheet worksheet,
-            List<ScoringRule> scoringRuleList, int targetWorkChunk)
+            List<ScoringRule> scoringRuleList, int targetWorkChunk) throws Exception
     {
         if(targetWorkChunk >= worksheet.works.size())
         {

@@ -54,8 +54,10 @@ public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> i
      * @param nodesScore a map from nodes to their scores
      * 
      * @param whether to score with subsequent {@link ScoringRule}. 
+     * 
+     * @throws Exception if any exception occurs, ScoringLoadBalancer falls back to original LoadBalancer.
      */
-    public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
+    public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore) throws Exception;
     
     /**
      * Returns all {@link ScoringRule}s registered to Jenkins.

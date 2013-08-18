@@ -128,10 +128,12 @@ public class BuildResultScoringRule extends ScoringRule
      * @param wc
      * @param m
      * @param nodesScore
+     * 
+     * @throws Exception
      */
     @Override
     public boolean updateScores(Task task, WorkChunk wc, Mapping m,
-            NodesScore nodesScore)
+            NodesScore nodesScore) throws Exception
     {
         for(SubTask subtask: wc)
         {
