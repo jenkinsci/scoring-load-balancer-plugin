@@ -24,11 +24,23 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
+import java.util.Set;
+import java.util.StringTokenizer;
+
+import jenkins.model.Jenkins;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
+import hudson.model.AutoCompletionCandidates;
 import hudson.model.Descriptor;
+import hudson.model.Label;
+import hudson.model.labels.LabelExpression;
+import hudson.util.FormValidation;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
+import antlr.ANTLRException;
 
 /**
  * Holds the configuration that which nodes are preferred to use.
@@ -72,7 +84,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
     @DataBoundConstructor
     public BuildPreference(String labelExpression, int preference)
     {
-        this.labelExpression = labelExpression;
+        this.labelExpression = StringUtils.trim(labelExpression);
         this.preference = preference;
     }
     
@@ -94,6 +106,91 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
         public String getDisplayName()
         {
             return "Preference for Nodes used in Building";
+        }
+        
+        /**
+         * Autocomplete for LabelExpression.
+         * 
+         * @param value
+         * @return
+         */
+        public AutoCompletionCandidates doAutoCompleteLabelExpression(
+                @QueryParameter String value
+        )
+        {
+            AutoCompletionCandidates c = new AutoCompletionCandidates();
+            
+            // candidate labels
+            Set<Label> labels = Jenkins.getInstance().getLabels();
+            
+            // current inputting value
+            StringTokenizer t = new StringTokenizer(value);
+            String currentValue = null;
+            while(t.hasMoreTokens())
+            {
+                currentValue = t.nextToken();
+            }
+            
+            if(StringUtils.isEmpty(currentValue))
+            {
+                return c;
+            }
+            
+            for(Label l : labels)
+            {
+                if(l.getName().startsWith(currentValue))
+                {
+                    c.add(l.getName());
+                }
+            }
+            return c;
+        }
+        
+        /**
+         * Verify the input label expression
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckLabelExpression(@QueryParameter String value)
+        {
+            if(StringUtils.isBlank(value))
+            {
+                return FormValidation.error(Messages.BuildPreference_labelExpression_requied());
+            }
+            
+            try
+            {
+                Label l = LabelExpression.parseExpression(value);
+                if(l.getNodes().isEmpty())
+                {
+                    return FormValidation.warning(Messages.BuildPreference_labelExpression_empty());
+                }
+            }
+            catch(ANTLRException e)
+            {
+                return FormValidation.error(e, Messages.BuildPreference_labelExpression_invalid());
+            }
+            return FormValidation.ok();
+        }
+        
+        public FormValidation doCheckPreference(@QueryParameter String value)
+        {
+            if(StringUtils.isBlank(value))
+            {
+                return FormValidation.error(Messages.BuildPreference_preference_requied());
+            }
+            
+            try
+            {
+                Integer.parseInt(StringUtils.trim(value));
+            }
+            catch(NumberFormatException e)
+            {
+                return FormValidation.error(e, Messages.BuildPreference_preference_invalid());
+            }
+            
+            return FormValidation.ok();
         }
     }
 }
