@@ -26,10 +26,10 @@ THE SOFTWARE.
     <f:entry title="${%Number of Builds to Track}" field="numberOfBuilds">
       <f:textbox default="10" />
     </f:entry>
-    <f:entry title="${%Scale for Scores}" field="scale">
+    <f:entry title="${%Base Scale for Scores}" field="scale">
       <f:textbox default="10" />
     </f:entry>
-    <f:entry title="${%Scale Adjustment for Older builds}" field="scaleAdjustForOlder">
+    <f:entry title="${%Scale Adjustment for Older Builds}" field="scaleAdjustForOlder">
       <f:textbox default="-1" />
     </f:entry>
     <f:entry title="${%Score for Success Build}" field="scoreForSuccess">

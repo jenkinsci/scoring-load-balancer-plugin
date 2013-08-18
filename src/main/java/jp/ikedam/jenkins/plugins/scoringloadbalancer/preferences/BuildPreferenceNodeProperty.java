@@ -24,7 +24,8 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
-import org.apache.commons.lang.StringUtils;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -94,20 +95,7 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node>
          */
         public FormValidation doCheckPreference(@QueryParameter String value)
         {
-            if(StringUtils.isBlank(value))
-            {
-                return FormValidation.error(Messages.BuildPreferenceNodeProperty_preference_requied());
-            }
-            
-            try
-            {
-                Integer.parseInt(StringUtils.trim(value));
-            }
-            catch(NumberFormatException e)
-            {
-                return FormValidation.error(e, Messages.BuildPreferenceNodeProperty_preference_invalid());
-            }
-            return FormValidation.ok();
+            return ValidationUtil.doCheckInteger(value);
         }
     }
 }

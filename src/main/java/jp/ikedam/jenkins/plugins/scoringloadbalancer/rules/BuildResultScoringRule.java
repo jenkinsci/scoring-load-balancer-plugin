@@ -33,14 +33,18 @@ import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 import hudson.model.queue.SubTask;
+import hudson.util.FormValidation;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 
 /**
  * A score keeper depends on build results on each nodes.
@@ -208,6 +212,89 @@ public class BuildResultScoringRule extends ScoringRule
         public String getDisplayName()
         {
             return Messages.BuildResultScoringRule_DisplayName();
+        }
+        
+        /**
+         * Verify the input number of builds.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckNumberOfBuilds(@QueryParameter String value)
+        {
+            if(StringUtils.isBlank(value))
+            {
+                return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_required());
+            }
+            
+            try
+            {
+                int num = Integer.parseInt(StringUtils.trim(value));
+                if(num <= 0)
+                {
+                    return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_invalid());
+                }
+            }
+            catch(NumberFormatException e)
+            {
+                return FormValidation.error(e, Messages.BuildResultScoringRule_numberOfBuilds_invalid());
+            }
+            return FormValidation.ok();
+        }
+        
+        /**
+         * Verify the input scale.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScale(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input scaleAdjustForOlder.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScaleAdjustForOlder(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input scoreForSuccess.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScoreForSuccess(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input scoreForUnstable.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScoreForUnstable(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input scoreForFailure.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScoreForFailure(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
         }
     }
 }

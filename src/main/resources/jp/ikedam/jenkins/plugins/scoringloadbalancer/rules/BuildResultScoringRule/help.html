@@ -1,0 +1,108 @@
+<div>
+<p>
+Calculates a score of a node depending on the result of the last build
+at which the target project ran on that node.
+</p>
+<p>
+The score for the node is calculated by multiplying scale and result score.
+See followings for details.
+</p>
+<table>
+<tr>
+  <th>score of node</th>
+  <td>=</td>
+  <td>(scale) * (result score)</td>
+</tr>
+<tr>
+  <th>scale</th>
+  <td>=</td>
+  <td>(Scale for Scores) + (adjust score)</td>
+</tr>
+<tr>
+  <th>scale</th>
+  <td>=</td>
+  <td>(Scale Adjustment for Older Builds) * (# of builds from the last build)</td>
+</tr>
+<tr>
+  <th>result score</th>
+  <td>=</td>
+  <td>(Score for Success/Unstable/Failure Build)</td>
+</tr>
+</table>
+<p>
+For exmaple, consider following configurations:
+</p>
+<table>
+<tr>
+  <td>Scale for Scores</td>
+  <td>=</td>
+  <td>10</td>
+</tr>
+<tr>
+  <td>Scale Adjustment for Older Builds</td>
+  <td>=</td>
+  <td>-1</td>
+</tr>
+<tr>
+  <td>Score for Success Build</td>
+  <td>=</td>
+  <td>1</td>
+</tr>
+<tr>
+  <td>Score for Failure Build</td>
+  <td>=</td>
+  <td>-1</td>
+</tr>
+</table>
+
+<p>
+With a project with following builds:
+</p>
+<table>
+<tr>
+  <th>Build #</th>
+  <th>Result</th>
+  <th>Node</th>
+</tr>
+<tr>
+  <td>#20</td>
+  <td>Failure</td>
+  <td>node1<br />
+</tr>
+<tr>
+  <td>#19</td>
+  <td>Failure</td>
+  <td>node2<br />
+</tr>
+<tr>
+  <td>#18</td>
+  <td>Success</td>
+  <td>node1<br />
+</tr>
+<tr>
+  <td>#17</td>
+  <td>Success</td>
+  <td>node3<br />
+</tr>
+</table>
+<p>
+This results in following scores for nodes.
+</p>
+<table>
+<tr>
+  <th>node1:</th>
+  <td>-10</td>
+  <td>(for Failure in #20)</td>
+</tr>
+<tr>
+  <th>node2:</th>
+  <td>-9</td>
+  <td>(for Failure in #19)</td>
+</tr>
+<tr>
+  <th>node3:</th>
+  <td>7</td>
+  <td>(for Succeed in #17)</td>
+</tr>
+</table>
+</div>

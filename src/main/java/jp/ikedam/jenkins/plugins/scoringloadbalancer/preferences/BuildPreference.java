@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import jenkins.model.Jenkins;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.AutoCompletionCandidates;
@@ -176,21 +177,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
         
         public FormValidation doCheckPreference(@QueryParameter String value)
         {
-            if(StringUtils.isBlank(value))
-            {
-                return FormValidation.error(Messages.BuildPreference_preference_requied());
-            }
-            
-            try
-            {
-                Integer.parseInt(StringUtils.trim(value));
-            }
-            catch(NumberFormatException e)
-            {
-                return FormValidation.error(e, Messages.BuildPreference_preference_invalid());
-            }
-            
-            return FormValidation.ok();
+            return ValidationUtil.doCheckInteger(value);
         }
     }
 }
