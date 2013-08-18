@@ -8,13 +8,35 @@
 
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>scoring-load-balancer</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Scoring Load Balancer</name>
   <description>Decides a build run on which node by scoring nodes.</description>
 
+  <!-- disable here when hosted in jenkins-ci.org -->
   <url>https://github.com/ikedam/scoring-load-balancer/</url>
-  <!--
+  
+  <scm>
+    <connection>scm:git:git://github.com/ikedam/${project.artifactId}.git</connection>
+    <developerConnection>scm:git:git@github.com:ikedam/${project.artifactId}.git</developerConnection>
+    <url>https://github.com/ikedam/${project.artifactId}</url>
+  </scm>
+  
+  <distributionManagement>
+    <repository>
+      <id>internal.repo.release</id>
+      <name>Internal Repository for Release</name>
+      <url>${internal.repo.path}/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>internal.repo.snapshot</id>
+      <name>Internal Repository for snapshot</name>
+      <url>${internal.repo.path}/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+  <!-- /disable here when hosted in jenkins-ci.org -->
+  
+  <!-- enable here when hosted in jenkins-ci.org
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Jobcopy+Builder+plugin</url>
   
   <scm>
