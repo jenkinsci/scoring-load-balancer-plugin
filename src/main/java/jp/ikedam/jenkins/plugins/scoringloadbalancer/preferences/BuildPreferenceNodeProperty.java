@@ -24,12 +24,15 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
 import hudson.model.Node;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
+import hudson.util.FormValidation;
 
 /**
  * Holds configuration that how this node is preferred.
@@ -81,6 +84,30 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node>
         public String getDisplayName()
         {
             return Messages.BuildPreferenceNodeProperty_DisplayName();
+        }
+        
+        /**
+         * Verify an input preference value.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckPreference(@QueryParameter String value)
+        {
+            if(StringUtils.isBlank(value))
+            {
+                return FormValidation.error(Messages.BuildPreferenceNodeProperty_preference_requied());
+            }
+            
+            try
+            {
+                Integer.parseInt(StringUtils.trim(value));
+            }
+            catch(NumberFormatException e)
+            {
+                return FormValidation.error(e, Messages.BuildPreferenceNodeProperty_preference_invalid());
+            }
+            return FormValidation.ok();
         }
     }
 }
