@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import antlr.ANTLRException;
 
@@ -42,11 +43,13 @@ import hudson.model.labels.LabelExpression;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 import hudson.model.queue.SubTask;
+import hudson.util.FormValidation;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceJobProperty;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceNodeProperty;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 
 /**
  * Scores nodes depending on preferences of nodes and projects.
@@ -174,6 +177,28 @@ public class NodePreferenceScoringRule extends ScoringRule
         public String getDisplayName()
         {
             return Messages.NodePreferenceScoringRule_DisplayName();
+        }
+        
+        /**
+         * Verify the input nodesPreferenceScale.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckNodesPreferenceScale(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input projectPreferenceScale.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckProjectPreferenceScale(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
         }
     }
 }
