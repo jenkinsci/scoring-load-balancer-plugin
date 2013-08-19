@@ -118,9 +118,15 @@ public class BuildPreferenceJobProperty extends JobProperty<AbstractProject<?, ?
                 JSONObject formData)
                 throws hudson.model.Descriptor.FormException
         {
-            JSONObject form = (formData != null && !formData.isNullObject())
-                    ?formData.getJSONObject(getPropertyName())
-                    :new JSONObject();
+            if(formData == null || formData.isNullObject())
+            {
+                return null;
+            }
+            JSONObject form = formData.getJSONObject(getPropertyName());
+            if(form == null || form.isNullObject())
+            {
+                return null;
+            }
             return (BuildPreferenceJobProperty)super.newInstance(req, form);
         }
     }
