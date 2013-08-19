@@ -24,6 +24,7 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
@@ -31,8 +32,10 @@ import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet.ExecutorChunk;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
+import hudson.util.FormValidation;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 
 /**
  * Score nodes depending on their loads.
@@ -145,6 +148,39 @@ public class NodeLoadScoringRule extends ScoringRule
         public String getDisplayName()
         {
             return Messages.NodeLoadScoringRule_DisplayName();
+        }
+        
+        /**
+         * Verify the input scale.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScale(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input scoreForIdleExecutor.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScoreForIdleExecutor(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
+        }
+        
+        /**
+         * Verify the input scoreForBusyExecutor.
+         * 
+         * @param value
+         * @return
+         */
+        public FormValidation doCheckScoreForBusyExecutor(@QueryParameter String value)
+        {
+            return ValidationUtil.doCheckInteger(value);
         }
     }
 }

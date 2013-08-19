@@ -1,0 +1,36 @@
+<div>
+<p>
+Calculates a score of a node depending on the result of executors.
+</p>
+<p>
+The score for the node is calculated by multiplying scale and executor score.
+See followings for details.
+</p>
+<table>
+<tr>
+  <th>score of node</th>
+  <td>=</td>
+  <td>(Scale for Scores) * (executor score)</td>
+</tr>
+<tr>
+  <th>scale</th>
+  <td>=</td>
+  <td>(Scale Adjustment for Older Builds) * (# of builds from the last build)</td>
+</tr>
+<tr>
+  <th>executor score</th>
+  <td>=</td>
+  <td>(idle executor score) + (busy executor score)</td>
+</tr>
+<tr>
+  <th>idle executor score</th>
+  <td>=</td>
+  <td>(Score for Idle Executor) * (# of builds that the node can accept now)</td>
+</tr>
+<tr>
+  <th>busy executor score</th>
+  <td>=</td>
+  <td>(Score for Busy Executor) * (# of builds that are running on the node)</td>
+</tr>
+</table>
+</div>
