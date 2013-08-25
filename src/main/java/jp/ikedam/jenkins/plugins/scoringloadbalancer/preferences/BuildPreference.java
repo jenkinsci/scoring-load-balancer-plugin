@@ -24,6 +24,9 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -121,6 +124,11 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
         {
             AutoCompletionCandidates c = new AutoCompletionCandidates();
             
+            if(StringUtils.isEmpty(value))
+            {
+                return c;
+            }
+            
             // candidate labels
             Set<Label> labels = Jenkins.getInstance().getLabels();
             
@@ -137,13 +145,22 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
                 return c;
             }
             
+            List<String> cands = new ArrayList<String>();
+            
             for(Label l : labels)
             {
                 if(l.getName().startsWith(currentValue))
                 {
-                    c.add(l.getName());
+                    cands.add(l.getName());
                 }
             }
+            
+            Collections.sort(cands);
+            for(String s: cands)
+            {
+                c.add(s);
+            }
+            
             return c;
         }
         
