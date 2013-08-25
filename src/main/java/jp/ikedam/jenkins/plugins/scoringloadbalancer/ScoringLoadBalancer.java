@@ -24,12 +24,15 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -146,16 +149,23 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         // retrieve scoringRuleList not to behave inconsistently when configuration is updated.
         List<ScoringRule> scoringRuleList = getScoringRuleList();
         
-        try
+        if(isEnabled())
         {
-            if(isEnabled() && assignGreedily(m, task, worksheet, scoringRuleList))
+            try
             {
-                return m;
+                if(assignGreedily(m, task, worksheet, scoringRuleList))
+                {
+                    return m;
+                }
+                else
+                {
+                    return null;
+                }
             }
-        }
-        catch(Exception e)
-        {
-            LOGGER.log(Level.SEVERE, "Failed to load balance with scores: fallback to preconfigured LoadBalancer", e);
+            catch(Exception e)
+            {
+                LOGGER.log(Level.SEVERE, "Failed to load balance with scores: fallback to preconfigured LoadBalancer", e);
+            }
         }
         
         if(getFallback() != null)
@@ -214,18 +224,25 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         // Score nodes by calling enabled ScoringRules.
         for(ScoringRule scoringRule: getScoringRuleList())
         {
-            scoringRule.updateScores(task, wc, m, nodesScore);
+            if(!scoringRule.updateScores(task, wc, m, nodesScore))
+            {
+                break;
+            }
         }
         
         sortExecutors(executors, nodesScore);
         
         if(isReportScoresEnabled())
         {
-            reportScores(executors, nodesScore);
+            reportScores(wc, executors, nodesScore);
         }
         
         for(ExecutorChunk ec: executors)
         {
+            if(nodesScore.isInvalid(ec))
+            {
+                continue;
+            }
             m.assign(targetWorkChunk, ec);
             if(
                     m.isPartiallyValid()
@@ -259,10 +276,10 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      * @param executors
      * @param nodesScore
      */
-    protected void reportScores(List<ExecutorChunk> executors, NodesScore nodesScore)
+    protected void reportScores(WorkChunk wc, List<ExecutorChunk> executors, NodesScore nodesScore)
     {
         List<String> lines = new ArrayList<String>();
-        lines.add("Scoring:");
+        lines.add(String.format("Scoring for %s:", StringUtils.join(wc, ',')));
         for(ExecutorChunk ec: executors)
         {
             lines.add(String.format("  %20s: %4d", ec.getName(), nodesScore.getScore(ec)));
@@ -360,6 +377,36 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         }
         
         /**
+         * Used for testing purpose.
+         * 
+         * @param enabled
+         * @param reportScoresEnabled
+         * @param scoringRuleList
+         * @return
+         */
+        public boolean configure(boolean enabled, boolean reportScoresEnabled, List<ScoringRule> scoringRuleList)
+        {
+            this.enabled = enabled;
+            this.reportScoresEnabled = reportScoresEnabled;
+            this.scoringRuleList = scoringRuleList;
+            save();
+            return true;
+        }
+        
+        /**
+         * Used for testing purpose.
+         * 
+         * @param enabled
+         * @param reportScoresEnabled
+         * @param scoringRules
+         * @return
+         */
+        public boolean configure(boolean enabled, boolean reportScoresEnabled, ScoringRule ... scoringRules)
+        {
+            return configure(enabled, reportScoresEnabled, Arrays.asList(scoringRules));
+        }
+        
+        /**
          * Returns the name to display.
          * 
          * Displayed in System Configuration page as a section title.
@@ -393,6 +440,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     {
         private Map<Node, ExecutorChunk> nodeExecutorMap;
         private Map<ExecutorChunk, Integer> executorScoreMap;
+        private Set<ExecutorChunk> invalidExecutors;
         
         /**
          * Constructor
@@ -405,6 +453,8 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         {
             nodeExecutorMap = new HashMap<Node, ExecutorChunk>(executors.size());
             executorScoreMap = new HashMap<ExecutorChunk, Integer>(executors.size());
+            invalidExecutors = new HashSet<ExecutorChunk>();
+            
             for(ExecutorChunk executor: executors)
             {
                 nodeExecutorMap.put(executor.node, executor);
@@ -502,6 +552,64 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         public int getScore(ExecutorChunk executor)
         {
             return executorScoreMap.get(executor);
+        }
+        
+        /**
+         * Make the task not run on this node.
+         * 
+         * Same to call {@link NodesScore#markInvalid(Node)} for executor.node.
+         * 
+         * @param executor
+         */
+        public void markInvalid(ExecutorChunk executor)
+        {
+            invalidExecutors.add(executor);
+        }
+        
+        /**
+         * Make the task not run on this node.
+         * 
+         * @param node
+         */
+        public void markInvalid(Node node)
+        {
+            markInvalid(nodeExecutorMap.get(node));
+        }
+        
+        /**
+         * Reset invalid marks on all nodes.
+         */
+        public void resetInvalid()
+        {
+            invalidExecutors.clear();
+        }
+        
+        /**
+         * Mark all nodes invalid.
+         */
+        public void markAllInvalid()
+        {
+            invalidExecutors.addAll(executorScoreMap.keySet());
+        }
+        
+        /**
+         * Same to call {@link NodesScore#isInvalid(Node)} for executor.node.
+         * 
+         * @param executor
+         * @return
+         */
+        public boolean isInvalid(ExecutorChunk executor)
+        {
+            return invalidExecutors.contains(executor);
+        }
+        
+        /**
+         * @param node
+         * @return
+         */
+        public boolean isInvalid(Node node)
+        {
+            return isInvalid(nodeExecutorMap.get(node));
         }
         
         /**
