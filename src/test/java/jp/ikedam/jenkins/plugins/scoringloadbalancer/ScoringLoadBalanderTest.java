@@ -34,6 +34,7 @@ import hudson.model.Slave;
 import hudson.model.labels.LabelExpression;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
 

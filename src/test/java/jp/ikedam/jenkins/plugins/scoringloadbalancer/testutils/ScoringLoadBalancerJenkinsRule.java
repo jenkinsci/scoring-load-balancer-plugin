@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package jp.ikedam.jenkins.plugins.scoringloadbalancer;
+package jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils;
 
 import hudson.Functions;
 import hudson.Util;
