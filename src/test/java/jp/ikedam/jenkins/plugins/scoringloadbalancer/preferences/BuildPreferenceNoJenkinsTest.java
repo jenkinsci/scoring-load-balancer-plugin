@@ -25,7 +25,6 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
 import static org.junit.Assert.*;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference.DescriptorImpl;
 
 import org.junit.Test;
 

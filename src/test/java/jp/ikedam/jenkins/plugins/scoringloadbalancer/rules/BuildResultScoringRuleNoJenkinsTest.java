@@ -25,6 +25,8 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import static org.junit.Assert.*;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.BuildResultScoringRule.DescriptorImpl;
+import hudson.util.FormValidation;
 
 import org.junit.Test;
 
@@ -67,6 +69,100 @@ public class BuildResultScoringRuleNoJenkinsTest
             assertEquals(1, target.getScoreForSuccess());
             assertEquals(-1, target.getScoreForUnstable());
             assertEquals(-1, target.getScoreForFailure());
+        }
+    }
+    
+    @Test
+    public void testDescriptor_doCheckNumberOfBuilds()
+    {
+        DescriptorImpl descriptor = new DescriptorImpl();
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("999");
+            assertEquals(FormValidation.Kind.OK, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("099");
+            assertEquals(FormValidation.Kind.OK, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("   987654321    ");
+            assertEquals(FormValidation.Kind.OK, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds(null);
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("   ");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("1f");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("1.2");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("0.0");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("-99");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("-099");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("0");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("-0");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("00");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckNumberOfBuilds("-00");
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            long value = Integer.MAX_VALUE;
+            value += 1;
+            FormValidation v = descriptor.doCheckNumberOfBuilds(String.format("%d", value));
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            long value = Integer.MIN_VALUE;
+            value -= 1;
+            FormValidation v = descriptor.doCheckNumberOfBuilds(String.format("%d", value));
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
     }
 }

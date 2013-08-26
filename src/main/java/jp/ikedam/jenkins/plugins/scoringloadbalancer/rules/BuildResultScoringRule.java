@@ -163,7 +163,8 @@ public class BuildResultScoringRule extends ScoringRule
             for(
                     int pastNum = 0;
                     pastNum < getNumberOfBuilds() && build != null;
-                    ++pastNum, build = build.getPreviousBuild())
+                    ++pastNum, build = build.getPreviousBuild()
+            )
             {
                 Node node = build.getBuiltOn();
                 if(!nodeSet.contains(node))

@@ -42,11 +42,18 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesSc
 public class TestingScoringRule extends ScoringRule
 {
     public List<WorkChunk> calledWorkChunkList = new ArrayList<WorkChunk>();
+    public List<NodesScore> nodesScoreList = new ArrayList<NodesScore>();
     public boolean result = true;
     public boolean reset = false;
     public boolean reject = false;
     public Map<Node,Integer> scoreMap = new HashMap<Node,Integer>();
     public Exception e = null;
+    
+    public void clear()
+    {
+        calledWorkChunkList.clear();
+        nodesScoreList.clear();
+    }
     
     /**
      * @param task
@@ -58,7 +65,7 @@ public class TestingScoringRule extends ScoringRule
      * @see jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule#updateScores(hudson.model.Queue.Task, hudson.model.queue.MappingWorksheet.WorkChunk, hudson.model.queue.MappingWorksheet.Mapping, jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore)
      */
     @Override
-    public boolean updateScores(Task task, WorkChunk wc, Mapping m,
+    public synchronized boolean updateScores(Task task, WorkChunk wc, Mapping m,
             NodesScore nodesScore) throws Exception
     {
         if(e != null)
@@ -84,6 +91,7 @@ public class TestingScoringRule extends ScoringRule
         {
             nodesScore.markAllInvalid();
         }
+        nodesScoreList.add(nodesScore);
         return result;
     }
 }
