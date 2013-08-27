@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hudson.model.Computer;
+import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue.Task;
 import hudson.model.queue.AbstractSubTask;
@@ -44,6 +45,7 @@ public class DummySubTask extends AbstractSubTask
     private Object sameNodeConstraint;
     private Node lastBuiltOn;
     private long duration = 5;
+    private Label assignedLabel = null;
     
     public DummySubTask(String name, Task owner, long duration)
     {
@@ -79,6 +81,17 @@ public class DummySubTask extends AbstractSubTask
     public void setSameNodeConstraint(Object sameNodeConstraint)
     {
         this.sameNodeConstraint = sameNodeConstraint;
+    }
+    
+    @Override
+    public Label getAssignedLabel()
+    {
+        return assignedLabel;
+    }
+    
+    public void setAssignedLabel(Label assignedLabel)
+    {
+        this.assignedLabel = assignedLabel;
     }
     
     @Override

@@ -24,20 +24,36 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils;
 
+import static org.junit.Assert.assertTrue;
+import hudson.Extension;
 import hudson.Functions;
 import hudson.Util;
 import hudson.PluginWrapper;
 import hudson.model.Computer;
+import hudson.model.listeners.RunListener;
+import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.FreeStyleProject;
+import hudson.model.Node;
 import hudson.model.Queue;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
+import hudson.slaves.ComputerListener;
+import hudson.slaves.NodeProperty;
+import hudson.slaves.DumbSlave;
+import hudson.slaves.RetentionStrategy;
 import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestEnvironment;
@@ -88,6 +104,95 @@ public class ScoringLoadBalancerJenkinsRule extends JenkinsRule
             }
         }
     }
+    
+    public DumbSlave createOnlineSlave(String label, int numExecutor) throws Exception
+    {
+        DumbSlave slave = null;
+        synchronized(jenkins)
+        {
+            slave = new DumbSlave(
+                    String.format("slave%d", jenkins.getNodes().size()),
+                    "dummy",
+                    createTmpDir().getPath(),
+                    Integer.toString(numExecutor),
+                    Node.Mode.NORMAL,
+                    label, 
+                    createComputerLauncher(null),
+                    RetentionStrategy.NOOP,
+                    Collections.<NodeProperty<?>>emptyList()
+            );
+            jenkins.addNode(slave);
+        }
+        
+        slaveOnlineLock.lock();
+        try
+        {
+            while(!slave.toComputer().isOnline())
+            {
+                slaveOnlineCondition.await();
+            }
+        }
+        finally
+        {
+            slaveOnlineLock.unlock();
+        }
+        
+        return slave;
+    }
+    
+    public static Lock slaveOnlineLock = new ReentrantLock();
+    public static Condition slaveOnlineCondition = slaveOnlineLock.newCondition();
+    
+    @Extension
+    public static final ComputerListener slaveOnlineNotifier = new ComputerListener()
+    {
+        public void onOnline(Computer c, hudson.model.TaskListener listener) throws IOException ,InterruptedException
+        {
+            slaveOnlineLock.lock();
+            try
+            {
+                slaveOnlineCondition.signalAll();
+            }
+            finally
+            {
+                slaveOnlineLock.unlock();
+            }
+        };
+    };
+    
+    public void startBuild(AbstractProject<?, ?> p, int timeoutsecs) throws InterruptedException
+    {
+        buildStartLock.lock();
+        try
+        {
+            p.scheduleBuild2(0);
+            assertTrue(buildStartCondition.await(timeoutsecs, TimeUnit.SECONDS));
+        }
+        finally
+        {
+            buildStartLock.unlock();
+        }
+    }
+    
+    private static Lock buildStartLock = new ReentrantLock();
+    private static Condition buildStartCondition = buildStartLock.newCondition();
+    
+    @Extension
+    public static final RunListener<Run<?,?>> buildStartListener = new RunListener<Run<?,?>>()
+    {
+        @Override
+        public void onStarted(hudson.model.Run<?,?> r, TaskListener listener) {
+            buildStartLock.lock();
+            try
+            {
+                buildStartCondition.signalAll();
+            }
+            finally
+            {
+                buildStartLock.unlock();
+            }
+        };
+    };
     
     private void purgeSlaves() {
         List<Computer> disconnectingComputers = new ArrayList<Computer>();

@@ -22,43 +22,39 @@
  * THE SOFTWARE.
  */
 
-package jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils;
+package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import static org.junit.Assert.*;
 
-import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.JobProperty;
-import hudson.model.JobPropertyDescriptor;
-import hudson.model.queue.SubTask;
+import org.junit.Test;
 
 /**
  *
  */
-public class TriggerOtherProjectProperty extends JobProperty<AbstractProject<?,?>>
+public class NodeLoadScoringRuleNoJenkinsTest
 {
-    private List<SubTask> subTaskList;
-    
-    public TriggerOtherProjectProperty(SubTask ... tasks)
+    @Test
+    public void testNodeLoadScoringRule()
     {
-        subTaskList = Arrays.asList(tasks);
-    }
-    
-    @Override
-    public Collection<? extends SubTask> getSubTasks()
-    {
-        return subTaskList;
-    }
-    
-    @Extension
-    public static class DescriptorImpl extends JobPropertyDescriptor
-    {
-        @Override
-        public String getDisplayName()
         {
-            return "Property For Triggering other Project at the same time.";
+            NodeLoadScoringRule target = new NodeLoadScoringRule(
+                    10,
+                    1,
+                    -1
+            );
+            assertEquals(10, target.getScale());
+            assertEquals(1, target.getScoreForIdleExecutor());
+            assertEquals(-1, target.getScoreForBusyExecutor());
+        }
+        {
+            NodeLoadScoringRule target = new NodeLoadScoringRule(
+                    100,
+                    3,
+                    -5
+            );
+            assertEquals(100, target.getScale());
+            assertEquals(3, target.getScoreForIdleExecutor());
+            assertEquals(-5, target.getScoreForBusyExecutor());
         }
     }
 }
