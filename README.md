@@ -17,7 +17,7 @@ This plugin provides following features:
 	* Scoring by Node Loads
 		* Prefers nodes where more executers remain.
 		* Avoids nodes where more builds run.
-	* Scoring by Preferred Nodes
+	* Scoring by Node Preferences
 		* Prefers nodes marked "Preferred" in configuration of the building project.
 		* Prefers nodes with labels marked "Preferred" in configuration of the building project.
 		* Prefers nodes marked "Preferred" in configuration of nodes.
@@ -84,3 +84,11 @@ public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesSc
 ```
 
 You can score nodes by updating `nodesScore`.
+
+
+
+Limitations
+-----------
+
+* A performance problem may occurs for a large number of nodes.
+** I've tested the behavior with only 10 nodes.
