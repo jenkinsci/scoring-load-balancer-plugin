@@ -29,6 +29,7 @@ import hudson.Extension;
 import hudson.Functions;
 import hudson.Util;
 import hudson.PluginWrapper;
+import hudson.matrix.MatrixProject;
 import hudson.model.Computer;
 import hudson.model.listeners.RunListener;
 import hudson.model.AbstractProject;
@@ -69,6 +70,12 @@ public class ScoringLoadBalancerJenkinsRule extends JenkinsRule
     public FreeStyleProject createFreeStyleProject() throws IOException
     {
         return super.createFreeStyleProject();
+    }
+    
+    @Override
+    public MatrixProject createMatrixProject() throws IOException
+    {
+        return super.createMatrixProject();
     }
     
     /**

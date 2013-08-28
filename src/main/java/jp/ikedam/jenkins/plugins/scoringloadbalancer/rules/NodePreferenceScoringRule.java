@@ -34,6 +34,7 @@ import antlr.ANTLRException;
 
 import hudson.Extension;
 import hudson.Util;
+import hudson.matrix.MatrixConfiguration;
 import hudson.model.Descriptor;
 import hudson.model.Job;
 import hudson.model.Label;
@@ -122,14 +123,7 @@ public class NodePreferenceScoringRule extends ScoringRule
         // scores by preference configured in projects.
         for(SubTask subtask: wc)
         {
-            if(!(subtask instanceof Job))
-            {
-                continue;
-            }
-            
-            Job<?,?> job = (Job<?,?>)subtask;
-            BuildPreferenceJobProperty prefs = job.getProperty(BuildPreferenceJobProperty.class);
-            
+            BuildPreferenceJobProperty prefs = getBuildPreferenceJobProperty(subtask);
             if(prefs == null)
             {
                 continue;
@@ -151,7 +145,7 @@ public class NodePreferenceScoringRule extends ScoringRule
                 }
                 catch(ANTLRException e)
                 {
-                    LOGGER.log(Level.WARNING, String.format("Skipped an invalid label: %s (configured in %s)", pref.getLabelExpression(), job.getFullName()), e);
+                    LOGGER.log(Level.WARNING, String.format("Skipped an invalid label: %s (configured in %s)", pref.getLabelExpression(), subtask.toString()), e);
                 }
             }
         }
@@ -159,6 +153,24 @@ public class NodePreferenceScoringRule extends ScoringRule
         return true;
     }
     
+    private BuildPreferenceJobProperty getBuildPreferenceJobProperty(SubTask subtask)
+    {
+        if(!(subtask instanceof Job))
+        {
+            return null;
+        }
+        
+        if(subtask instanceof MatrixConfiguration)
+        {
+            MatrixConfiguration conf = (MatrixConfiguration)subtask;
+            return conf.getParent().getProperty(BuildPreferenceJobProperty.class);
+        }
+        
+        Job<?,?> job = (Job<?,?>)subtask;
+        return job.getProperty(BuildPreferenceJobProperty.class);
+        
+    }
+
     /**
      * Manages views for {@link NodePreferenceScoringRule}
      */
