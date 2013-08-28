@@ -287,4 +287,12 @@ public class NodeLoadScoringRuleJenkinsTest
         assertEquals(-20, testScoringRule.nodesScoreList.get(1).getScore(node1));
         assertEquals(-30, testScoringRule.nodesScoreList.get(2).getScore(node1));
     }
+    
+    @Test
+    public void testDescriptor()
+    {
+        @SuppressWarnings("unused")
+        NodePreferenceScoringRule.DescriptorImpl descriptor
+            = (NodePreferenceScoringRule.DescriptorImpl)j.jenkins.getDescriptor(NodePreferenceScoringRule.class);
+    }
 }
