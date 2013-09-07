@@ -37,7 +37,7 @@ This plugin works as following:
 2. Jenkins requests to map builds to nodes (`LoadBalancer#map`)
 3. Pick the first WorkChunk (that is, subtask).
 4. Score all nodes by calling all configured `ScoringRule`
-	* You can define a new scoring rule by creating a subclass of `ScoreRule`.
+	* You can define a new scoring rule by creating a subclass of `ScoringRule`.
 5. Pick the ExecutorChunk with the highest score node. Assign that ExecutorChunk to the current WorkChunk.
 6. Pick the next WorkChunk, and back to 4. Scoring is performed for each WorkChunk, for the case scores differ for each subtask.
 7. If assignment is failed (e.g. some constrains is broken), pick the next ExecutorChunk, and back to 6.
