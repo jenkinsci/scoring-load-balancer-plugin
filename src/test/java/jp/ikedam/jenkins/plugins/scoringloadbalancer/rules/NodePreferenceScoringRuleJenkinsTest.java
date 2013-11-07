@@ -27,6 +27,7 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import hudson.matrix.AxisList;
@@ -147,5 +148,44 @@ public class NodePreferenceScoringRuleJenkinsTest
         assertEquals(2, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
         assertEquals(12, testScoringRule.nodesScoreList.get(0).getScore(node1));
         assertEquals(4, testScoringRule.nodesScoreList.get(0).getScore(node2));
+    }
+    
+    @Test
+    public void testProjectPreferenceNull() throws Exception
+    {
+        setScoringRule(new NodePreferenceScoringRule(1, -1));
+        
+        DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
+        DumbSlave node2 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
+        
+        FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new BuildPreferenceJobProperty(null));
+        
+        p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        
+        assertEquals(1, testScoringRule.nodesScoreList.size());
+        assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
+        assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node1));
+        assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
+    }
+    
+    
+    @Test
+    public void testProjectPreferenceEmpty() throws Exception
+    {
+        setScoringRule(new NodePreferenceScoringRule(1, -1));
+        
+        DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
+        DumbSlave node2 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
+        
+        FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new BuildPreferenceJobProperty(Collections.<BuildPreference>emptyList()));
+        
+        p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        
+        assertEquals(1, testScoringRule.nodesScoreList.size());
+        assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
+        assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node1));
+        assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 }
