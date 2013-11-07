@@ -124,7 +124,7 @@ public class NodePreferenceScoringRule extends ScoringRule
         for(SubTask subtask: wc)
         {
             BuildPreferenceJobProperty prefs = getBuildPreferenceJobProperty(subtask);
-            if(prefs == null)
+            if(prefs == null || prefs.getBuildPreferenceList() == null)
             {
                 continue;
             }
