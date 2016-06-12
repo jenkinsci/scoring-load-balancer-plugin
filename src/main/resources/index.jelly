@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <div>
 Decides a build run on which node by scoring nodes.
 </div>

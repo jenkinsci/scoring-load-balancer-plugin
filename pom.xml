@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
+    <version>2.9</version>
   </parent>
 
   <groupId>jp.ikedam.jenkins.plugins</groupId>
@@ -37,10 +37,45 @@
   </licenses>
   
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <jenkins.version>1.466</jenkins.version>
+    <jenkins-test-harness.version>1.466</jenkins-test-harness.version>
+    <java.level>5</java.level>
+    <!-- jenkins-test-harness < 1.545 doesn't allow concurrent tests -->
+    <concurrency>1</concurrency>
   </properties>
 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>display-info</id>
+            <configuration>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <!-- <exclude>org.sonatype.sisu:sisu-guice</exclude> -->
+                    <exclude>log4j:log4j:*:jar:compile</exclude>
+                    <exclude>log4j:log4j:*:jar:runtime</exclude>
+                    <exclude>commons-logging:commons-logging:*:jar:compile</exclude>
+                    <exclude>commons-logging:commons-logging:*:jar:runtime</exclude>
+                  </excludes>
+                </bannedDependencies>
+                <enforceBytecodeVersion>
+                  <excludes combine.children="append">
+                    <!-- dependencies via jenkins-core-1.466 -->
+                    <exclude>org.kohsuke:asm3</exclude>
+                  </excludes>
+                </enforceBytecodeVersion>
+              </rules>
+          </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
   <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
   <repositories>
     <repository>
