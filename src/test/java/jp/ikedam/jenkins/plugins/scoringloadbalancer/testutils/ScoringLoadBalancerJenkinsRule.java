@@ -72,10 +72,9 @@ public class ScoringLoadBalancerJenkinsRule extends JenkinsRule
         return super.createFreeStyleProject();
     }
     
-    @Override
     public MatrixProject createMatrixProject() throws IOException
     {
-        return super.createMatrixProject();
+        return super.createProject(MatrixProject.class);
     }
     
     /**
@@ -243,7 +242,7 @@ public class ScoringLoadBalancerJenkinsRule extends JenkinsRule
      * 
      * @see org.jvnet.hudson.test.JenkinsRule#after()
      */
-    protected void after() {
+    public void after() throws Exception {
         if(Functions.isWindows()) {
             purgeSlaves();
         }

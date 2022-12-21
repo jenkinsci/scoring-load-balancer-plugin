@@ -76,7 +76,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     public static void installLoadBalancer()
     {
         LOGGER.info("Replace LoadBalancer to ScoringLoadBalancer");
-        Queue q = Jenkins.getInstance().getQueue();
+        Queue q = Jenkins.get().getQueue();
         LoadBalancer fallback = q.getLoadBalancer();
         q.setLoadBalancer(new ScoringLoadBalancer(fallback));
     }

@@ -6,7 +6,7 @@ Jenkins plugin to decides a build run on which node by scoring nodes.
 What's this?
 ------------
 
-Scoring Load Balancer is a [Jenkins](http://jenkins-ci.org/) plugin.
+Scoring Load Balancer is a [Jenkins](https://ci.jenkins.io/) plugin.
 This plugin provides following features:
 
 * Decides a node where a build run depending on scores of nodes.
