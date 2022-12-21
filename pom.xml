@@ -3,22 +3,23 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.9</version>
+    <version>4.53</version>
+    <relativePath />
   </parent>
 
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>scoring-load-balancer</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>${changelist}</version>
   <packaging>hpi</packaging>
   <name>Scoring Load Balancer</name>
-  <description>Decides a build run on which node by scoring nodes.</description>
 
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Scoring+Load+Balancer+plugin</url>
+  <url>https://plugins.jenkins.io/scoring-load-balancer/</url>
   
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+    <connection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <tag>${scmTag}</tag>
   </scm>
   
   <developers>
@@ -35,51 +36,11 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  
-  <properties>
-    <jenkins.version>1.466</jenkins.version>
-    <jenkins-test-harness.version>1.466</jenkins-test-harness.version>
-    <java.level>5</java.level>
-  </properties>
 
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <!-- jenkins-test-harness < 1.545 doesn't support concurrent tests. -->
-          <forkCount>1</forkCount>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>display-info</id>
-            <configuration>
-              <rules>
-                <bannedDependencies>
-                  <excludes>
-                    <!-- <exclude>org.sonatype.sisu:sisu-guice</exclude> -->
-                    <exclude>log4j:log4j:*:jar:compile</exclude>
-                    <exclude>log4j:log4j:*:jar:runtime</exclude>
-                    <exclude>commons-logging:commons-logging:*:jar:compile</exclude>
-                    <exclude>commons-logging:commons-logging:*:jar:runtime</exclude>
-                  </excludes>
-                </bannedDependencies>
-                <enforceBytecodeVersion>
-                  <excludes combine.children="append">
-                    <!-- dependencies via jenkins-core-1.466 -->
-                    <exclude>org.kohsuke:asm3</exclude>
-                  </excludes>
-                </enforceBytecodeVersion>
-              </rules>
-          </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <properties>
+    <changelist>999999-SNAPSHOT</changelist>
+    <jenkins.version>2.361.4</jenkins.version>
+  </properties>
   
   <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
   <repositories>
@@ -95,5 +56,24 @@
       <url>https://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.361.x</artifactId>
+        <version>1750.v0071fa_4c4a_e3</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-project</artifactId>
+    </dependency>
+  </dependencies>
 
 </project>

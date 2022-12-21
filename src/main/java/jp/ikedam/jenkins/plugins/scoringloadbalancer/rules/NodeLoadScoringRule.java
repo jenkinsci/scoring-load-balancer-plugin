@@ -98,8 +98,7 @@ public class NodeLoadScoringRule extends ScoringRule
      * @param task
      * @param wc
      * @param m
-     * @param nodeScore
-     * 
+     *
      * @return
      * 
      * @see jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule#updateScores(hudson.model.Queue.Task, hudson.model.queue.MappingWorksheet.WorkChunk, hudson.model.queue.MappingWorksheet.Mapping, jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore)

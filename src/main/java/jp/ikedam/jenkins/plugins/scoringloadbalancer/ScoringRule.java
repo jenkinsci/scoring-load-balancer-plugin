@@ -67,6 +67,6 @@ public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> i
      */
     public static DescriptorExtensionList<ScoringRule, Descriptor<ScoringRule>> all()
     {
-        return Jenkins.getInstance().getDescriptorList(ScoringRule.class);
+        return Jenkins.get().getDescriptorList(ScoringRule.class);
     }
 }

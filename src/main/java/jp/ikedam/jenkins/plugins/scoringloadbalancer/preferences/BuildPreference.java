@@ -130,7 +130,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
             }
             
             // candidate labels
-            Set<Label> labels = Jenkins.getInstance().getLabels();
+            Set<Label> labels = Jenkins.get().getLabels();
             
             // current inputting value
             StringTokenizer t = new StringTokenizer(value);
