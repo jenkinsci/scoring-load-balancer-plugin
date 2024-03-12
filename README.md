@@ -1,6 +1,10 @@
 Scoring Load Balancer plugin
 ============================
 
+[![Version](https://img.shields.io/jenkins/plugin/v/scoring-load-balancer.svg)](https://plugins.jenkins.io/scoring-load-balancer)
+[![Changelog](https://img.shields.io/github/release/jenkinsci/scoring-load-balancer-plugin.svg?label=changelog)](https://github.com/jenkinsci/scoring-load-balancer-plugin/releases/latest)
+[![Installs](https://img.shields.io/jenkins/plugin/i/scoring-load-balancer.svg?color=blue)](https://plugins.jenkins.io/scoring-load-balancer)
+
 Jenkins plugin to decides a build run on which node by scoring nodes.
 
 What's this?
@@ -11,20 +15,20 @@ This plugin provides following features:
 
 * Decides a node where a build run depending on scores of nodes.
 * Provides following scoring rules. New ones can be added using `ExtensionPoint`.
-	* Scoring by Build Results
-		* Prefers nodes where the last builds of the project succeeded.
-		* Avoids nodes where the last builds of the project failed.
-	* Scoring by Node Loads
-		* Prefers nodes where more executers remain.
-		* Avoids nodes where more builds run.
-	* Scoring by Node Preferences
-		* Prefers nodes marked "Preferred" in configuration of the building project.
-		* Prefers nodes with labels marked "Preferred" in configuration of the building project.
-		* Prefers nodes marked "Preferred" in configuration of nodes.
+  * Scoring by Build Results
+    * Prefers nodes where the last builds of the project succeeded.
+    * Avoids nodes where the last builds of the project failed.
+  * Scoring by Node Loads
+    * Prefers nodes where more executers remain.
+    * Avoids nodes where more builds run.
+  * Scoring by Node Preferences
+    * Prefers nodes marked "Preferred" in configuration of the building project.
+    * Prefers nodes with labels marked "Preferred" in configuration of the building project.
+    * Prefers nodes marked "Preferred" in configuration of nodes.
 * Scoring rules are configured in "Manage Jenkins" > "Configure System"
-	* Pick up available scoring rules and put them in preferred order.
-		* Each scoring rules provides its configuration.
-		* You can put scoring rules twice or more, but it might be useless for current providing methods.
+  * Pick up available scoring rules and put them in preferred order.
+    * Each scoring rules provides its configuration.
+    * You can put scoring rules twice or more, but it might be useless for current providing methods.
 
 How does this work?
 -------------------
@@ -37,7 +41,7 @@ This plugin works as following:
 2. Jenkins requests to map builds to nodes (`LoadBalancer#map`)
 3. Pick the first WorkChunk (that is, subtask).
 4. Score all nodes by calling all configured `ScoringRule`
-	* You can define a new scoring rule by creating a subclass of `ScoringRule`.
+   * You can define a new scoring rule by creating a subclass of `ScoringRule`.
 5. Pick the ExecutorChunk with the highest score node. Assign that ExecutorChunk to the current WorkChunk.
 6. Pick the next WorkChunk, and back to 4. Scoring is performed for each WorkChunk, for the case scores differ for each subtask.
 7. If assignment is failed (e.g. some constrains is broken), pick the next ExecutorChunk, and back to 6.
@@ -72,20 +76,16 @@ it passes `WorkChunk`s and `ExecutorChunk`s.
 
 `ExecutorChunk` groups executors by their computers (that is by nodes).
 
-
-
 Extension point
 ---------------
 
 New scoring rule can be added with extending `ScoringRule`, overriding the following method:
 
-```
+```java
 public abstract boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore);
 ```
 
 You can score nodes by updating `nodesScore`.
-
-
 
 Limitations
 -----------
