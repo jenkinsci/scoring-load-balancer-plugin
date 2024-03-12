@@ -2,8 +2,11 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+    ":semanticCommitsDisabled",
+    "schedule:earlyMondays",
   ],
   "labels": [
     "dependencies"
-  ]
+  ],
+  "rebaseWhen": "conflicted"
 }
