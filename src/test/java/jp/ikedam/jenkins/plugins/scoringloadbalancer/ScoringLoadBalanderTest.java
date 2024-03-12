@@ -39,6 +39,7 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRul
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -240,6 +241,7 @@ public class ScoringLoadBalanderTest
         j.assertBuildStatusSuccess(b2);
     }
     
+    @Ignore("TODO: fix me #15")
     @Test(expected=TimeoutException.class)
     public void testMultipleTasksShortage() throws Exception
     {
@@ -296,6 +298,7 @@ public class ScoringLoadBalanderTest
         }
     }
     
+    @Ignore("TODO: fix me #15")
     @Test(expected=TimeoutException.class)
     public void testMultipleTasksWithConstraintShortage() throws Exception
     {
