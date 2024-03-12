@@ -26,7 +26,6 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 import hudson.DescriptorExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.Describable;
 import hudson.model.LoadBalancer;
 import hudson.model.Descriptor;
 import hudson.model.Queue.Task;
@@ -39,7 +38,7 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesSc
 /**
  * Scores nodes to determine which is proper to have a task build on.
  */
-public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> implements ExtensionPoint, Describable<ScoringRule>
+public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> implements ExtensionPoint
 {
     /**
      * Score the nodes.

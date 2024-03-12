@@ -296,7 +296,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     @Override
     public DescriptorImpl getDescriptor()
     {
-        return (DescriptorImpl)Jenkins.getInstance().getDescriptorOrDie(getClass());
+        return (DescriptorImpl)Jenkins.get().getDescriptorOrDie(getClass());
     }
     
     /**

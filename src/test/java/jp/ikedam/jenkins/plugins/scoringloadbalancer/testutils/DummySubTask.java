@@ -32,12 +32,12 @@ import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue.Task;
-import hudson.model.queue.AbstractSubTask;
+import hudson.model.queue.SubTask;
 
 /**
  *
  */
-public class DummySubTask extends AbstractSubTask
+public class DummySubTask implements SubTask
 {
     private static Logger LOGGER = Logger.getLogger(DummySubTask.class.getName());
     private String name;
