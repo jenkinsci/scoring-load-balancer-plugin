@@ -11,8 +11,8 @@
   <artifactId>scoring-load-balancer</artifactId>
   <version>${changelist}</version>
   <packaging>hpi</packaging>
-  <name>Scoring Load Balancer</name>
 
+  <name>Scoring Load Balancer</name>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
   
   <scm>
@@ -36,7 +36,7 @@
   <licenses>
     <license>
       <name>The MIT license</name>
-      <url>https://www.opensource.org/licenses/mit-license.php</url>
+      <url>https://opensource.org/license/mit</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
