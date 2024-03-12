@@ -30,8 +30,6 @@ import java.util.logging.Logger;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import antlr.ANTLRException;
-
 import hudson.Extension;
 import hudson.Util;
 import hudson.matrix.MatrixConfiguration;
@@ -143,7 +141,7 @@ public class NodePreferenceScoringRule extends ScoringRule
                         nodesScore.addScore(node, pref.getPreference() * getProjectPreferenceScale());
                     }
                 }
-                catch(ANTLRException e)
+                catch(IllegalArgumentException e)
                 {
                     LOGGER.log(Level.WARNING, String.format("Skipped an invalid label: %s (configured in %s)", pref.getLabelExpression(), subtask.toString()), e);
                 }

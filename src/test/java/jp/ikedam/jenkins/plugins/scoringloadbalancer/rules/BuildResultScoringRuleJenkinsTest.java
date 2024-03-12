@@ -79,7 +79,7 @@ public class BuildResultScoringRuleJenkinsTest
     private void setScoringRule(ScoringRule scoringRule)
     {
         DescriptorImpl descriptor
-            = (DescriptorImpl)j.jenkins.getDescriptor(ScoringLoadBalancer.class);
+            = (DescriptorImpl)j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
         descriptor.configure(true, true, scoringRule, testScoringRule);
     }
     

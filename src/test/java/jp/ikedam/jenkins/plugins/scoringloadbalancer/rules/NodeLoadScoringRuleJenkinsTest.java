@@ -68,7 +68,7 @@ public class NodeLoadScoringRuleJenkinsTest
     private void setScoringRule(ScoringRule scoringRule)
     {
         DescriptorImpl descriptor
-            = (DescriptorImpl)j.jenkins.getDescriptor(ScoringLoadBalancer.class);
+            = (DescriptorImpl)j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
         descriptor.configure(true, true, scoringRule, testScoringRule);
     }
     
@@ -293,6 +293,6 @@ public class NodeLoadScoringRuleJenkinsTest
     {
         @SuppressWarnings("unused")
         NodePreferenceScoringRule.DescriptorImpl descriptor
-            = (NodePreferenceScoringRule.DescriptorImpl)j.jenkins.getDescriptor(NodePreferenceScoringRule.class);
+            = (NodePreferenceScoringRule.DescriptorImpl)j.jenkins.getDescriptorOrDie(NodePreferenceScoringRule.class);
     }
 }

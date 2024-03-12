@@ -68,7 +68,7 @@ public class ScoringLoadBalanderTest
     public void setUp() throws Exception
     {
         scoringRule = new TestingScoringRule();
-        descriptor = (DescriptorImpl)j.jenkins.getDescriptor(ScoringLoadBalancer.class);
+        descriptor = (DescriptorImpl)j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
         node1 = j.createOnlineSlave();
         node2 = j.createOnlineSlave();
         node3 = j.createOnlineSlave();

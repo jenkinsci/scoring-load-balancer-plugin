@@ -44,8 +44,6 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import antlr.ANTLRException;
-
 /**
  * Holds the configuration that which nodes are preferred to use.
  * 
@@ -185,7 +183,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
                     return FormValidation.warning(Messages.BuildPreference_labelExpression_empty());
                 }
             }
-            catch(ANTLRException e)
+            catch(IllegalArgumentException e)
             {
                 return FormValidation.error(e, Messages.BuildPreference_labelExpression_invalid());
             }
