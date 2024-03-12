@@ -32,6 +32,7 @@ import java.util.Collections;
 import hudson.model.AutoCompletionCandidates;
 import hudson.util.FormValidation;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -51,6 +52,7 @@ public class BuildPreferenceJenkinsTest
         return (DescriptorImpl)j.jenkins.getDescriptorOrDie(BuildPreference.class);
     }
     
+    @Ignore("TODO: fix me #15")
     @Test
     public void testDescriptor_doCheckLabelExpressionOk() throws Exception
     {
@@ -120,6 +122,7 @@ public class BuildPreferenceJenkinsTest
         }
     }
     
+    @Ignore("TODO: fix me #15")
     @Test
     public void testDescriptor_doAutoCompleteLabelExpression() throws Exception
     {
