@@ -13,7 +13,7 @@
   <packaging>hpi</packaging>
   <name>Scoring Load Balancer</name>
 
-  <url>https://plugins.jenkins.io/scoring-load-balancer/</url>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
   
   <scm>
     <connection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
@@ -27,12 +27,16 @@
       <id>ikedam</id>
       <name>IKEDA Yasuyuki</name>
     </developer>
+    <developer>
+      <id>viceice</id>
+      <name>Michael Kriese</name>
+    </developer>
   </developers>
   
   <licenses>
     <license>
       <name>The MIT license</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <url>https://www.opensource.org/licenses/mit-license.php</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
