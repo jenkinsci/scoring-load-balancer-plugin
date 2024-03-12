@@ -1,6 +1,8 @@
 Scoring Load Balancer plugin
 ============================
 
+[![Build Status](https://ci.jenkins.io/job/Plugins/job/scoring-load-balancer-plugin/job/main/badge/icon)](https://ci.jenkins.io/job/Plugins/job/scoring-load-balancer-plugin/job/main)
+[![Coverage](https://ci.jenkins.io/job/Plugins/job/scoring-load-balancer-plugin/job/main/badge/icon?status=${instructionCoverage}&subject=coverage&color=${colorInstructionCoverage})](https://ci.jenkins.io/job/Plugins/job/scoring-load-balancer-plugin/job/main/coverage)
 [![Version](https://img.shields.io/jenkins/plugin/v/scoring-load-balancer.svg)](https://plugins.jenkins.io/scoring-load-balancer)
 [![Changelog](https://img.shields.io/github/release/jenkinsci/scoring-load-balancer-plugin.svg?label=changelog)](https://github.com/jenkinsci/scoring-load-balancer-plugin/releases/latest)
 [![Installs](https://img.shields.io/jenkins/plugin/i/scoring-load-balancer.svg?color=blue)](https://plugins.jenkins.io/scoring-load-balancer)
