@@ -21,6 +21,11 @@
     <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <tag>${scmTag}</tag>
   </scm>
+
+  <issueManagement>
+    <system>Github</system>
+    <url>https://github.com/jenkinsci/scoring-load-balancer-plugin/issues</url>
+  </issueManagement>
   
   <developers>
     <developer>
