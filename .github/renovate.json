@@ -1,11 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":semanticCommitsDisabled"
-  ],
-  "labels": [
-    "dependencies"
-  ],
-  "rebaseWhen": "conflicted"
+  "extends": ["github>visualon/renovate-config//jenkins.json"]
 }
