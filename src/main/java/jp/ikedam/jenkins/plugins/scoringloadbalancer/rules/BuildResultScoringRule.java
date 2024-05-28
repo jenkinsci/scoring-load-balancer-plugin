@@ -38,7 +38,6 @@ import hudson.util.FormValidation;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -223,14 +222,14 @@ public class BuildResultScoringRule extends ScoringRule
          */
         public FormValidation doCheckNumberOfBuilds(@QueryParameter String value)
         {
-            if(StringUtils.isBlank(value))
+            if(value == null || value.isBlank())
             {
                 return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_required());
             }
             
             try
             {
-                int num = Integer.parseInt(StringUtils.trim(value));
+                int num = Integer.parseInt(value.trim());
                 if(num <= 0)
                 {
                     return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_invalid());

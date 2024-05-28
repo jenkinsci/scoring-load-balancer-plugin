@@ -26,8 +26,6 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer.util;
 
 import hudson.util.FormValidation;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * Common validation methods
  */
@@ -35,14 +33,14 @@ public class ValidationUtil
 {
     public static FormValidation doCheckInteger(String value)
     {
-        if(StringUtils.isBlank(value))
+        if(value == null || value.isBlank())
         {
             return FormValidation.error(Messages.ValidationUtil_integer_requied());
         }
         
         try
         {
-            Integer.parseInt(StringUtils.trim(value));
+            Integer.parseInt(value.trim());
         }
         catch(NumberFormatException e)
         {

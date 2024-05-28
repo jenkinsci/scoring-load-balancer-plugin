@@ -35,10 +35,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.StaplerRequest;
 
 import jenkins.model.Jenkins;
@@ -53,6 +53,7 @@ import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.Queue.Task;
 import hudson.model.queue.MappingWorksheet;
+import hudson.model.queue.SubTask;
 import hudson.model.queue.MappingWorksheet.ExecutorChunk;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
@@ -279,12 +280,13 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     protected void reportScores(WorkChunk wc, List<ExecutorChunk> executors, NodesScore nodesScore)
     {
         List<String> lines = new ArrayList<String>();
-        lines.add(String.format("Scoring for %s:", StringUtils.join(wc, ',')));
+        List<String> wcs = wc.stream().map(SubTask::toString).collect(Collectors.toList());
+        lines.add(String.format("Scoring for %s:", String.join(",", wcs)));
         for(ExecutorChunk ec: executors)
         {
             lines.add(String.format("  %20s: %4d", ec.getName(), nodesScore.getScore(ec)));
         }
-        LOGGER.info(StringUtils.join(lines, System.getProperty("line.separator")));
+        LOGGER.info(String.join(System.getProperty("line.separator"), lines));
     }
     
     /**
