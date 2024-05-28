@@ -40,7 +40,6 @@ import hudson.model.Label;
 import hudson.model.labels.LabelExpression;
 import hudson.util.FormValidation;
 
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -86,7 +85,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
     @DataBoundConstructor
     public BuildPreference(String labelExpression, int preference)
     {
-        this.labelExpression = StringUtils.trim(labelExpression);
+        this.labelExpression = labelExpression == null ? null : labelExpression.trim();
         this.preference = preference;
     }
     
@@ -122,7 +121,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
         {
             AutoCompletionCandidates c = new AutoCompletionCandidates();
             
-            if(StringUtils.isEmpty(value))
+            if(value == null || value.length() == 0)
             {
                 return c;
             }
@@ -138,7 +137,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
                 currentValue = t.nextToken();
             }
             
-            if(StringUtils.isEmpty(currentValue))
+            if(currentValue == null || currentValue.length() == 0)
             {
                 return c;
             }
@@ -170,7 +169,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
          */
         public FormValidation doCheckLabelExpression(@QueryParameter String value)
         {
-            if(StringUtils.isBlank(value))
+            if(value == null || value.isBlank())
             {
                 return FormValidation.error(Messages.BuildPreference_labelExpression_requied());
             }
