@@ -122,6 +122,8 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         this.fallback = fallback;
     }
 
+    private long lastEvaluation = System.currentTimeMillis();
+
     /**
      * Decides nodes to run tasks on.
      *
@@ -134,6 +136,13 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      */
     @Override
     public Mapping map(Task task, MappingWorksheet worksheet) {
+        // Jenkins provides incomplete executors for simultaneous builds - throttle build starts:
+        // abort if last call isn't that long ago:
+        if (lastEvaluation > System.currentTimeMillis() - 1000) {
+            return null;
+        }
+        this.lastEvaluation = System.currentTimeMillis();
+
         Mapping m = worksheet.new Mapping();
 
         // retrieve scoringRuleList not to behave inconsistently when configuration is updated.
