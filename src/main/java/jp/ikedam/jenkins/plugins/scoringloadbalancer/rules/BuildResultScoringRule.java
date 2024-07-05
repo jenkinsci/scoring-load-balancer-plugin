@@ -222,8 +222,10 @@ public class BuildResultScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckNumberOfBuilds(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             if(value == null || value.isBlank())
             {
                 return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_required());
