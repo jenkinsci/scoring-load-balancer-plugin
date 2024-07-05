@@ -120,13 +120,16 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
                 @QueryParameter String value, @AncestorInPath Item item
         )
         {
-            AutoCompletionCandidates c = new AutoCompletionCandidates();
-
             if (item == null) // no context
             {
-                return c;
+                Jenkins.get().checkPermission(Item.CONFIGURE);
             }
-            item.checkPermission(Item.CONFIGURE);
+            else
+            {
+                item.checkPermission(Item.CONFIGURE);
+            }
+
+            AutoCompletionCandidates c = new AutoCompletionCandidates();
 
             if (value == null || value.length() == 0)
             {
@@ -175,12 +178,16 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
          * @return
          */
         @POST
-        public FormValidation doCheckLabelExpression(@QueryParameter String value, @AncestorInPath Item item) {
+        public FormValidation doCheckLabelExpression(@QueryParameter String value, @AncestorInPath Item item)
+        {
             if (item == null) // no context
             {
-                return FormValidation.ok();
+                Jenkins.get().checkPermission(Item.CONFIGURE);
             }
-            item.checkPermission(Item.CONFIGURE);
+            else
+            {
+                item.checkPermission(Item.CONFIGURE);
+            }
 
             if (value == null || value.isBlank())
             {
