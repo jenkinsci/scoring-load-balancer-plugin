@@ -25,16 +25,23 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import static org.junit.Assert.*;
+
+import org.junit.Rule;
+
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.BuildResultScoringRule.DescriptorImpl;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import hudson.util.FormValidation;
 
 import org.junit.Test;
 
 /**
- *
+ * Now needs jenkins too for FormValidation
  */
 public class BuildResultScoringRuleNoJenkinsTest
 {
+    @Rule
+    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+
     @Test
     public void testBuildResultScoringRule()
     {
