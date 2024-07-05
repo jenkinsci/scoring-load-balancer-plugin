@@ -30,11 +30,14 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import hudson.model.AutoCompletionCandidates;
+import hudson.model.Item;
 import hudson.util.FormValidation;
 
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.mockito.Mockito.*;
 
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
@@ -44,6 +47,8 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalanc
  */
 public class BuildPreferenceJenkinsTest
 {
+    Item item = mock(Item.class);
+
     @Rule
     public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
     
@@ -60,22 +65,22 @@ public class BuildPreferenceJenkinsTest
         DescriptorImpl descriptor = getDescriptor();
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master");
+            FormValidation v = descriptor.doCheckLabelExpression("master", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master || node1");
+            FormValidation v = descriptor.doCheckLabelExpression("master || node1", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("!label1");
+            FormValidation v = descriptor.doCheckLabelExpression("!label1", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("  master  ");
+            FormValidation v = descriptor.doCheckLabelExpression("  master  ", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
     }
@@ -86,12 +91,17 @@ public class BuildPreferenceJenkinsTest
         j.createSlave("node1", "label1", null);
         DescriptorImpl descriptor = getDescriptor();
         {
-            FormValidation v = descriptor.doCheckLabelExpression("nolabel");
+            FormValidation v = descriptor.doCheckLabelExpression("nolabel", null);
             assertEquals(FormValidation.Kind.WARNING, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master && node1");
+            FormValidation v = descriptor.doCheckLabelExpression("master && node1", null);
+            assertEquals(FormValidation.Kind.WARNING, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckLabelExpression("master && node1", item);
             assertEquals(FormValidation.Kind.WARNING, v.kind);
         }
         
@@ -102,22 +112,27 @@ public class BuildPreferenceJenkinsTest
     {
         DescriptorImpl descriptor = getDescriptor();
         {
-            FormValidation v = descriptor.doCheckLabelExpression(null);
+            FormValidation v = descriptor.doCheckLabelExpression(null, null);
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("");
+            FormValidation v = descriptor.doCheckLabelExpression("", null);
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("   ");
+            FormValidation v = descriptor.doCheckLabelExpression("   ", null);
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
         
         {
-            FormValidation v = descriptor.doCheckLabelExpression("a b c");
+            FormValidation v = descriptor.doCheckLabelExpression("a b c", null);
+            assertEquals(FormValidation.Kind.ERROR, v.kind);
+        }
+        
+        {
+            FormValidation v = descriptor.doCheckLabelExpression("a b c", item);
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
     }
@@ -131,57 +146,57 @@ public class BuildPreferenceJenkinsTest
         
         DescriptorImpl descriptor = getDescriptor();
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression(null);
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression(null, null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("", null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("  ");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("  ", null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("m");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("m", null);
             assertEquals(Arrays.asList("master"), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("n");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("n", null);
             assertEquals(Arrays.asList("node1", "node2"), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("l");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("l", null);
             assertEquals(Arrays.asList("label1"), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("x");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("x", null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("label1 || m");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("label1 || m", null);
             assertEquals(Arrays.asList("master"), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("label1 || ");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("label1 || ", null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("  m  ");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("  m  ", null);
             assertEquals(Arrays.asList("master"), c.getValues());
         }
         
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("!m");
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("!m", null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
     }

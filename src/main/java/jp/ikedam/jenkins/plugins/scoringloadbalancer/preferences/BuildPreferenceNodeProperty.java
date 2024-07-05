@@ -28,12 +28,14 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import hudson.Extension;
 import hudson.model.Node;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 
 /**
  * Holds configuration that how this node is preferred.
@@ -93,8 +95,10 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node>
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckPreference(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
     }

@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import hudson.Extension;
 import hudson.Util;
@@ -43,6 +44,7 @@ import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 import hudson.model.queue.SubTask;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference;
@@ -195,8 +197,10 @@ public class NodePreferenceScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckNodesPreferenceScale(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
         
@@ -206,8 +210,10 @@ public class NodePreferenceScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckProjectPreferenceScale(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
     }

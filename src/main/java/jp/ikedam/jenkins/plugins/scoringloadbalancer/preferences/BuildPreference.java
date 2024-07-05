@@ -36,22 +36,24 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.AutoCompletionCandidates;
 import hudson.model.Descriptor;
+import hudson.model.Item;
 import hudson.model.Label;
 import hudson.model.labels.LabelExpression;
 import hudson.util.FormValidation;
 
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * Holds the configuration that which nodes are preferred to use.
  * 
  * Used by {@link BuildPreferenceJobProperty}.
  */
-public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
-{
+public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
     private String labelExpression;
-    
+
     /**
      * Returns the label expression to determine target nodes.
      * 
@@ -61,19 +63,18 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
     {
         return labelExpression;
     }
-    
+
     private int preference;
-    
+
     /**
      * Returns the preference score for target nodes.
      * 
      * @return the preference score
      */
-    public int getPreference()
-    {
+    public int getPreference() {
         return preference;
     }
-    
+
     /**
      * Constructor.
      * 
@@ -88,7 +89,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
         this.labelExpression = labelExpression == null ? null : labelExpression.trim();
         this.preference = preference;
     }
-    
+
     /**
      * Manages view for {@link BuildPreference}.
      */
@@ -104,93 +105,114 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference>
          * @see hudson.model.Descriptor#getDisplayName()
          */
         @Override
-        public String getDisplayName()
-        {
+        public String getDisplayName() {
             return "Preference for Nodes used in Building";
         }
-        
+
         /**
          * Autocomplete for LabelExpression.
          * 
          * @param value
          * @return
          */
+        @POST
         public AutoCompletionCandidates doAutoCompleteLabelExpression(
-                @QueryParameter String value
+                @QueryParameter String value, @AncestorInPath Item item
         )
         {
+            if (item == null) // no context
+            {
+                Jenkins.get().checkPermission(Item.CONFIGURE);
+            }
+            else
+            {
+                item.checkPermission(Item.CONFIGURE);
+            }
+
             AutoCompletionCandidates c = new AutoCompletionCandidates();
-            
-            if(value == null || value.length() == 0)
+
+            if (value == null || value.length() == 0)
             {
                 return c;
             }
-            
+
             // candidate labels
             Set<Label> labels = Jenkins.get().getLabels();
-            
+
             // current inputting value
             StringTokenizer t = new StringTokenizer(value);
             String currentValue = null;
-            while(t.hasMoreTokens())
+            while (t.hasMoreTokens())
             {
                 currentValue = t.nextToken();
             }
-            
-            if(currentValue == null || currentValue.length() == 0)
+
+            if (currentValue == null || currentValue.length() == 0)
             {
                 return c;
             }
-            
+
             List<String> cands = new ArrayList<String>();
-            
-            for(Label l : labels)
+
+            for (Label l : labels)
             {
-                if(l.getName().startsWith(currentValue))
+                if (l.getName().startsWith(currentValue))
                 {
                     cands.add(l.getName());
                 }
             }
-            
+
             Collections.sort(cands);
-            for(String s: cands)
+            for (String s : cands)
             {
                 c.add(s);
             }
-            
+
             return c;
         }
-        
+
         /**
          * Verify the input label expression
          * 
          * @param value
          * @return
          */
-        public FormValidation doCheckLabelExpression(@QueryParameter String value)
+        @POST
+        public FormValidation doCheckLabelExpression(@QueryParameter String value, @AncestorInPath Item item)
         {
-            if(value == null || value.isBlank())
+            if (item == null) // no context
+            {
+                Jenkins.get().checkPermission(Item.CONFIGURE);
+            }
+            else
+            {
+                item.checkPermission(Item.CONFIGURE);
+            }
+
+            if (value == null || value.isBlank())
             {
                 return FormValidation.error(Messages.BuildPreference_labelExpression_requied());
             }
-            
+
             try
             {
                 Label l = LabelExpression.parseExpression(value);
-                if(l.getNodes().isEmpty())
+                if (l.getNodes().isEmpty())
                 {
                     return FormValidation.warning(Messages.BuildPreference_labelExpression_empty());
                 }
             }
-            catch(IllegalArgumentException e)
+            catch (IllegalArgumentException e)
             {
                 return FormValidation.error(e, Messages.BuildPreference_labelExpression_invalid());
             }
             return FormValidation.ok();
         }
-        
+
+        @POST
         public FormValidation doCheckPreference(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
     }
