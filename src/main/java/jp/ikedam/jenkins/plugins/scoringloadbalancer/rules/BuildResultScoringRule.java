@@ -34,12 +34,14 @@ import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 import hudson.model.queue.SubTask;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
@@ -248,8 +250,10 @@ public class BuildResultScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckScale(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
         
@@ -259,8 +263,10 @@ public class BuildResultScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckScaleAdjustForOlder(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
         
@@ -270,8 +276,10 @@ public class BuildResultScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckScoreForSuccess(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
         
@@ -281,8 +289,10 @@ public class BuildResultScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckScoreForUnstable(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
         
@@ -292,8 +302,10 @@ public class BuildResultScoringRule extends ScoringRule
          * @param value
          * @return
          */
+        @POST
         public FormValidation doCheckScoreForFailure(@QueryParameter String value)
         {
+            Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
     }
