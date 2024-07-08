@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2013 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,34 +24,30 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import hudson.Extension;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Node;
 import hudson.model.Queue.Task;
+import hudson.model.Result;
 import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 import hudson.model.queue.SubTask;
 import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
-
 import java.util.HashSet;
 import java.util.Set;
-
+import jenkins.model.Jenkins;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
+import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
-
 /**
  * A score keeper depends on build results on each nodes.
  */
-public class BuildResultScoringRule extends ScoringRule
-{
+public class BuildResultScoringRule extends ScoringRule {
     // default values are defined in config.jelly
     private int numberOfBuilds;
     private int scale;
@@ -59,60 +55,54 @@ public class BuildResultScoringRule extends ScoringRule
     private int scoreForSuccess;
     private int scoreForUnstable;
     private int scoreForFailure;
-    
+
     /**
      * @return the numberOfBuilds
      */
-    public int getNumberOfBuilds()
-    {
+    public int getNumberOfBuilds() {
         return numberOfBuilds;
     }
-    
+
     /**
      * @return the scale
      */
-    public int getScale()
-    {
+    public int getScale() {
         return scale;
     }
-    
+
     /**
      * @return the scaleAdjustForOlder
      */
-    public int getScaleAdjustForOlder()
-    {
+    public int getScaleAdjustForOlder() {
         return scaleAdjustForOlder;
     }
-    
+
     /**
      * @return the scoreForSuccess
      */
-    public int getScoreForSuccess()
-    {
+    public int getScoreForSuccess() {
         return scoreForSuccess;
     }
-    
+
     /**
      * @return the scoreForUnstable
      */
-    public int getScoreForUnstable()
-    {
+    public int getScoreForUnstable() {
         return scoreForUnstable;
     }
-    
+
     /**
      * @return the scoreForFailure
      */
-    public int getScoreForFailure()
-    {
+    public int getScoreForFailure() {
         return scoreForFailure;
     }
-    
+
     /**
      * Constructor.
-     * 
+     *
      * Initialized with values a user configured.
-     * 
+     *
      * @param numberOfBuilds
      * @param scale
      * @param scaleAdjustForOlder
@@ -127,9 +117,7 @@ public class BuildResultScoringRule extends ScoringRule
             int scaleAdjustForOlder,
             int scoreForSuccess,
             int scoreForUnstable,
-            int scoreForFailure
-    )
-    {
+            int scoreForFailure) {
         this.numberOfBuilds = numberOfBuilds;
         this.scale = scale;
         this.scaleAdjustForOlder = scaleAdjustForOlder;
@@ -137,176 +125,150 @@ public class BuildResultScoringRule extends ScoringRule
         this.scoreForUnstable = scoreForUnstable;
         this.scoreForFailure = scoreForFailure;
     }
-    
+
     /**
      * Scores the nodes depending on build results on those nodes.
-     * 
+     *
      * @param task
      * @param wc
      * @param m
      * @param nodesScore
      */
     @Override
-    public boolean updateScores(Task task, WorkChunk wc, Mapping m,
-            NodesScore nodesScore)
-    {
-        for(SubTask subtask: wc)
-        {
-            if(!(subtask instanceof AbstractProject))
-            {
+    public boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore) {
+        for (SubTask subtask : wc) {
+            if (!(subtask instanceof AbstractProject)) {
                 return true;
             }
-            
-            AbstractProject<?,?> project = (AbstractProject<?, ?>)subtask;
-            
+
+            AbstractProject<?, ?> project = (AbstractProject<?, ?>) subtask;
+
             Set<Node> nodeSet = new HashSet<Node>(nodesScore.getNodes());
-            AbstractBuild<?,?> build = project.getLastBuild();
-            for(
-                    int pastNum = 0;
+            AbstractBuild<?, ?> build = project.getLastBuild();
+            for (int pastNum = 0;
                     pastNum < getNumberOfBuilds() && build != null;
-                    ++pastNum, build = build.getPreviousBuild()
-            )
-            {
+                    ++pastNum, build = build.getPreviousBuild()) {
                 Node node = build.getBuiltOn();
-                if(!nodeSet.contains(node))
-                {
+                if (!nodeSet.contains(node)) {
                     continue;
                 }
-                
+
                 int scale = getScale() + getScaleAdjustForOlder() * pastNum;
-                
-                if(Result.SUCCESS == build.getResult())
-                {
+
+                if (Result.SUCCESS == build.getResult()) {
                     nodesScore.addScore(node, getScoreForSuccess() * scale);
                     nodeSet.remove(node);
-                }
-                else if(Result.FAILURE == build.getResult())
-                {
+                } else if (Result.FAILURE == build.getResult()) {
                     nodesScore.addScore(node, getScoreForFailure() * scale);
                     nodeSet.remove(node);
-                }
-                else if(Result.UNSTABLE == build.getResult())
-                {
+                } else if (Result.UNSTABLE == build.getResult()) {
                     nodesScore.addScore(node, getScoreForUnstable() * scale);
                     nodeSet.remove(node);
                 }
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * Manages views for {@link BuildResultScoringRule}
      */
     @Extension
-    public static class DescriptorImpl extends Descriptor<ScoringRule>
-    {
+    public static class DescriptorImpl extends Descriptor<ScoringRule> {
         /**
          * Returns the name to display.
-         * 
+         *
          * Displayed in System Configuration page, as a name of a scoring rule.
-         * 
+         *
          * @return the name to display
          * @see hudson.model.Descriptor#getDisplayName()
          */
         @Override
-        public String getDisplayName()
-        {
+        public String getDisplayName() {
             return Messages.BuildResultScoringRule_DisplayName();
         }
-        
+
         /**
          * Verify the input number of builds.
-         * 
+         *
          * @param value
          * @return
          */
         @POST
-        public FormValidation doCheckNumberOfBuilds(@QueryParameter String value)
-        {
+        public FormValidation doCheckNumberOfBuilds(@QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.READ);
-            if(value == null || value.isBlank())
-            {
+            if (value == null || value.isBlank()) {
                 return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_required());
             }
-            
-            try
-            {
+
+            try {
                 int num = Integer.parseInt(value.trim());
-                if(num <= 0)
-                {
+                if (num <= 0) {
                     return FormValidation.error(Messages.BuildResultScoringRule_numberOfBuilds_invalid());
                 }
-            }
-            catch(NumberFormatException e)
-            {
+            } catch (NumberFormatException e) {
                 return FormValidation.error(e, Messages.BuildResultScoringRule_numberOfBuilds_invalid());
             }
             return FormValidation.ok();
         }
-        
+
         /**
          * Verify the input scale.
-         * 
+         *
          * @param value
          * @return
          */
         @POST
-        public FormValidation doCheckScale(@QueryParameter String value)
-        {
+        public FormValidation doCheckScale(@QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
-        
+
         /**
          * Verify the input scaleAdjustForOlder.
-         * 
+         *
          * @param value
          * @return
          */
         @POST
-        public FormValidation doCheckScaleAdjustForOlder(@QueryParameter String value)
-        {
+        public FormValidation doCheckScaleAdjustForOlder(@QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
-        
+
         /**
          * Verify the input scoreForSuccess.
-         * 
+         *
          * @param value
          * @return
          */
         @POST
-        public FormValidation doCheckScoreForSuccess(@QueryParameter String value)
-        {
+        public FormValidation doCheckScoreForSuccess(@QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
-        
+
         /**
          * Verify the input scoreForUnstable.
-         * 
+         *
          * @param value
          * @return
          */
         @POST
-        public FormValidation doCheckScoreForUnstable(@QueryParameter String value)
-        {
+        public FormValidation doCheckScoreForUnstable(@QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }
-        
+
         /**
          * Verify the input scoreForFailure.
-         * 
+         *
          * @param value
          * @return
          */
         @POST
-        public FormValidation doCheckScoreForFailure(@QueryParameter String value)
-        {
+        public FormValidation doCheckScoreForFailure(@QueryParameter String value) {
             Jenkins.get().checkPermission(Jenkins.READ);
             return ValidationUtil.doCheckInteger(value);
         }

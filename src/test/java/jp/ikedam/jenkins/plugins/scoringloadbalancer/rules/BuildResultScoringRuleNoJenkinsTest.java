@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2013 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,34 +26,23 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import static org.junit.Assert.*;
 
-import org.junit.Rule;
-
+import hudson.util.FormValidation;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.BuildResultScoringRule.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
-import hudson.util.FormValidation;
-
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
  * Now needs jenkins too for FormValidation
  */
-public class BuildResultScoringRuleNoJenkinsTest
-{
+public class BuildResultScoringRuleNoJenkinsTest {
     @Rule
     public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
 
     @Test
-    public void testBuildResultScoringRule()
-    {
+    public void testBuildResultScoringRule() {
         {
-            BuildResultScoringRule target = new BuildResultScoringRule(
-                    10,
-                    123, 
-                    -3,
-                    5,
-                    -2,
-                    -9
-            );
+            BuildResultScoringRule target = new BuildResultScoringRule(10, 123, -3, 5, -2, -9);
             assertEquals(10, target.getNumberOfBuilds());
             assertEquals(123, target.getScale());
             assertEquals(-3, target.getScaleAdjustForOlder());
@@ -62,14 +51,7 @@ public class BuildResultScoringRuleNoJenkinsTest
             assertEquals(-9, target.getScoreForFailure());
         }
         {
-            BuildResultScoringRule target = new BuildResultScoringRule(
-                    5,
-                    31, 
-                    -2,
-                    1,
-                    -1,
-                    -1
-            );
+            BuildResultScoringRule target = new BuildResultScoringRule(5, 31, -2, 1, -1, -1);
             assertEquals(5, target.getNumberOfBuilds());
             assertEquals(31, target.getScale());
             assertEquals(-2, target.getScaleAdjustForOlder());
@@ -78,93 +60,92 @@ public class BuildResultScoringRuleNoJenkinsTest
             assertEquals(-1, target.getScoreForFailure());
         }
     }
-    
+
     @Test
-    public void testDescriptor_doCheckNumberOfBuilds()
-    {
+    public void testDescriptor_doCheckNumberOfBuilds() {
         DescriptorImpl descriptor = new DescriptorImpl();
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("999");
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("099");
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("   987654321    ");
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds(null);
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("   ");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("1f");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("1.2");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("0.0");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("-99");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("-099");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("0");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("-0");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("00");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("-00");
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             long value = Integer.MAX_VALUE;
             value += 1;
             FormValidation v = descriptor.doCheckNumberOfBuilds(String.format("%d", value));
             assertEquals(FormValidation.Kind.ERROR, v.kind);
         }
-        
+
         {
             long value = Integer.MIN_VALUE;
             value -= 1;
