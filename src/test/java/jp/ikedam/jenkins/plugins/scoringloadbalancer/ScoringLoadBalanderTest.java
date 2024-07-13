@@ -76,7 +76,7 @@ public class ScoringLoadBalanderTest {
      */
     @Test
     public void testSimple() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
         FreeStyleProject p = j.createFreeStyleProject();
 
         // Run on master
@@ -117,7 +117,7 @@ public class ScoringLoadBalanderTest {
     @Test
     public void testMultipleRules() throws Exception {
         TestingScoringRule scoringRule2 = new TestingScoringRule();
-        descriptor.configure(true, true, scoringRule, scoringRule2);
+        descriptor.configure(true, true, false, scoringRule, scoringRule2);
         FreeStyleProject p = j.createFreeStyleProject();
 
         // Run on node1
@@ -146,7 +146,7 @@ public class ScoringLoadBalanderTest {
 
     @Test
     public void testDisabled() throws Exception {
-        descriptor.configure(false, true, scoringRule);
+        descriptor.configure(false, true, false, scoringRule);
         FreeStyleProject p = j.createFreeStyleProject();
 
         FreeStyleBuild b = p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
@@ -158,7 +158,7 @@ public class ScoringLoadBalanderTest {
 
     @Test
     public void testException() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
         scoringRule.e = new Exception("Testing Exception");
         FreeStyleProject p = j.createFreeStyleProject();
 
@@ -173,7 +173,7 @@ public class ScoringLoadBalanderTest {
     @Test
     public void testStopSubsequent() throws Exception {
         TestingScoringRule scoringRule2 = new TestingScoringRule();
-        descriptor.configure(true, true, scoringRule, scoringRule2);
+        descriptor.configure(true, true, false, scoringRule, scoringRule2);
         FreeStyleProject p = j.createFreeStyleProject();
         scoringRule.result = false;
 
@@ -203,7 +203,7 @@ public class ScoringLoadBalanderTest {
 
     @Test(expected = TimeoutException.class)
     public void testRejecting() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
         scoringRule.reject = true;
         FreeStyleProject p = j.createFreeStyleProject();
 
@@ -212,7 +212,7 @@ public class ScoringLoadBalanderTest {
 
     @Test
     public void testMultipleTasks() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         FreeStyleProject p2 = j.createFreeStyleProject();
@@ -229,7 +229,7 @@ public class ScoringLoadBalanderTest {
     @Ignore("TODO: fix me #15")
     @Test(expected = TimeoutException.class)
     public void testMultipleTasksShortage() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         p1.setAssignedLabel(LabelExpression.parseExpression("!master"));
@@ -245,7 +245,7 @@ public class ScoringLoadBalanderTest {
 
     @Test
     public void testMultipleTasksWithConstraint() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         DummySubTask p2 = new DummySubTask("Bound task", p1, 5000);
@@ -283,7 +283,7 @@ public class ScoringLoadBalanderTest {
     @Ignore("TODO: fix me #15")
     @Test(expected = TimeoutException.class)
     public void testMultipleTasksWithConstraintShortage() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         DummySubTask p2 = new DummySubTask("Bound task", p1, 5000);
