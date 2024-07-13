@@ -73,7 +73,7 @@ public class BuildResultScoringRuleJenkinsTest {
 
     private void setScoringRule(ScoringRule scoringRule) {
         DescriptorImpl descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
-        descriptor.configure(true, true, false, scoringRule, testScoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule, testScoringRule);
     }
 
     @Ignore("TODO: fix me #15")

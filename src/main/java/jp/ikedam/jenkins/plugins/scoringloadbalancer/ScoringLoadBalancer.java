@@ -124,6 +124,16 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     }
 
     /**
+     * Returns the throttle time of the workaround for simultaneous builds, which only allows a single build to start
+     * within the amount of milliseconds that is returned by this method.
+     *
+     * @return the throttle time in milliseconds of the workaround.
+     */
+    public int getSimultaneousBuildsWorkaroundThrottleTime() {
+        return getDescriptor().getSimultaneousBuildsWorkaroundThrottleTime();
+    }
+
+    /**
      * Constructor.
      *
      * @param fallback LoadBalancer to fall back. Specify originally registered LoadBalancer.
@@ -149,7 +159,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         if (isSimultaneousBuildsWorkaroundEnabled()) {
             // Jenkins provides incomplete executors for simultaneous builds - throttle build starts:
             // abort if last call isn't that long ago:
-            if (lastEvaluation > System.currentTimeMillis() - 1000) {
+            if (lastEvaluation > System.currentTimeMillis() - getSimultaneousBuildsWorkaroundThrottleTime()) {
                 return null;
             }
             this.lastEvaluation = System.currentTimeMillis();
@@ -332,6 +342,18 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
             return simultaneousBuildsWorkaroundEnabled;
         }
 
+        private int simultaneousBuildsWorkaroundThrottleTime = 1000;
+
+        /**
+         * Returns the throttle time of the workaround for simultaneous builds, which only allows a single build to
+         * start within the amount of milliseconds that is returned by this method.
+         *
+         * @return the throttle time in milliseconds of the workaround.
+         */
+        public int getSimultaneousBuildsWorkaroundThrottleTime() {
+            return simultaneousBuildsWorkaroundThrottleTime;
+        }
+
         private List<ScoringRule> scoringRuleList = Collections.emptyList();
 
         /**
@@ -367,6 +389,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
             enabled = json.getBoolean("enabled");
             reportScoresEnabled = json.getBoolean("reportScoresEnabled");
             simultaneousBuildsWorkaroundEnabled = json.getBoolean("simultaneousBuildsWorkaroundEnabled");
+            simultaneousBuildsWorkaroundThrottleTime = json.getInt("simultaneousBuildsWorkaroundThrottleTime");
             scoringRuleList = req.bindJSONToList(ScoringRule.class, json.get("scoringRuleList"));
             save();
             return super.configure(req, json);
@@ -378,6 +401,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          * @param enabled
          * @param reportScoresEnabled
          * @param simultaneousBuildsWorkaroundEnabled
+         * @param simultaneousBuildsWorkaroundThrottleTime
          * @param scoringRuleList
          * @return
          */
@@ -385,10 +409,12 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
                 boolean enabled,
                 boolean reportScoresEnabled,
                 boolean simultaneousBuildsWorkaroundEnabled,
+                int simultaneousBuildsWorkaroundThrottleTime,
                 List<ScoringRule> scoringRuleList) {
             this.enabled = enabled;
             this.reportScoresEnabled = reportScoresEnabled;
             this.simultaneousBuildsWorkaroundEnabled = simultaneousBuildsWorkaroundEnabled;
+            this.simultaneousBuildsWorkaroundThrottleTime = simultaneousBuildsWorkaroundThrottleTime;
             this.scoringRuleList = scoringRuleList;
             save();
             return true;
@@ -400,6 +426,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          * @param enabled
          * @param reportScoresEnabled
          * @param simultaneousBuildsWorkaroundEnabled
+         * @param simultaneousBuildsWorkaroundThrottleTime
          * @param scoringRules
          * @return
          */
@@ -407,9 +434,14 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
                 boolean enabled,
                 boolean reportScoresEnabled,
                 boolean simultaneousBuildsWorkaroundEnabled,
+                int simultaneousBuildsWorkaroundThrottleTime,
                 ScoringRule... scoringRules) {
             return configure(
-                    enabled, reportScoresEnabled, simultaneousBuildsWorkaroundEnabled, Arrays.asList(scoringRules));
+                    enabled,
+                    reportScoresEnabled,
+                    simultaneousBuildsWorkaroundEnabled,
+                    simultaneousBuildsWorkaroundThrottleTime,
+                    Arrays.asList(scoringRules));
         }
 
         /**
