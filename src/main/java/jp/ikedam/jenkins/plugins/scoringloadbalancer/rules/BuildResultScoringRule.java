@@ -28,6 +28,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Node;
+import hudson.model.Queue.Executable;
 import hudson.model.Queue.Task;
 import hudson.model.Result;
 import hudson.model.queue.MappingWorksheet.Mapping;
@@ -40,6 +41,13 @@ import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
+import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
+import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
+import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+import org.jenkinsci.plugins.workflow.graph.FlowGraphWalker;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
@@ -137,31 +145,72 @@ public class BuildResultScoringRule extends ScoringRule {
     @Override
     public boolean updateScores(Task task, WorkChunk wc, Mapping m, NodesScore nodesScore) {
         for (SubTask subtask : wc) {
-            if (!(subtask instanceof AbstractProject)) {
-                return true;
+
+            AbstractBuild<?, ?> freestylebuild = null;
+            WorkflowRun pipelinebuild = null;
+
+            if ((subtask instanceof AbstractProject)) {
+                AbstractProject<?, ?> project = (AbstractProject<?, ?>) subtask;
+                freestylebuild = project.getLastBuild();
+            } else if (subtask != null) {
+                Executable qexec = subtask.getOwnerExecutable();
+                if (qexec != null && (qexec.getParent() instanceof WorkflowJob)) {
+                    WorkflowJob wfj = (WorkflowJob) qexec.getParent();
+                    pipelinebuild = (WorkflowRun) wfj.getLastCompletedBuild();
+                }
             }
 
-            AbstractProject<?, ?> project = (AbstractProject<?, ?>) subtask;
+            if (freestylebuild == null && pipelinebuild == null) {
+                continue;
+            }
 
             Set<Node> nodeSet = new HashSet<Node>(nodesScore.getNodes());
-            AbstractBuild<?, ?> build = project.getLastBuild();
-            for (int pastNum = 0;
-                    pastNum < getNumberOfBuilds() && build != null;
-                    ++pastNum, build = build.getPreviousBuild()) {
-                Node node = build.getBuiltOn();
-                if (!nodeSet.contains(node)) {
+
+            for (int pastNum = 0; pastNum < getNumberOfBuilds(); ++pastNum) {
+
+                Node node = null;
+                Result result = null;
+
+                if (freestylebuild != null) {
+                    node = freestylebuild.getBuiltOn();
+                    result = freestylebuild.getResult();
+                    freestylebuild = freestylebuild.getPreviousBuild();
+                } else if (pipelinebuild != null) {
+                    FlowExecution fexec = pipelinebuild.getExecution();
+                    result = pipelinebuild.getResult();
+                    pipelinebuild = pipelinebuild.getPreviousBuild();
+
+                    if (fexec == null) {
+                        continue;
+                    }
+
+                    FlowGraphWalker fgw = new FlowGraphWalker(fexec);
+                    for (FlowNode fn : fgw) {
+                        if (fn instanceof StepStartNode) {
+                            WorkspaceAction action = (WorkspaceAction) fn.getAction(WorkspaceAction.class);
+                            if (action != null) {
+                                node = Jenkins.get().getNode(action.getNode());
+                                if (node != null && nodeSet.contains(node)) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (node == null || result == null || !nodeSet.contains(node)) {
                     continue;
                 }
 
                 int scale = getScale() + getScaleAdjustForOlder() * pastNum;
 
-                if (Result.SUCCESS == build.getResult()) {
+                if (Result.SUCCESS == result) {
                     nodesScore.addScore(node, getScoreForSuccess() * scale);
                     nodeSet.remove(node);
-                } else if (Result.FAILURE == build.getResult()) {
+                } else if (Result.FAILURE == result) {
                     nodesScore.addScore(node, getScoreForFailure() * scale);
                     nodeSet.remove(node);
-                } else if (Result.UNSTABLE == build.getResult()) {
+                } else if (Result.UNSTABLE == result) {
                     nodesScore.addScore(node, getScoreForUnstable() * scale);
                     nodeSet.remove(node);
                 }
