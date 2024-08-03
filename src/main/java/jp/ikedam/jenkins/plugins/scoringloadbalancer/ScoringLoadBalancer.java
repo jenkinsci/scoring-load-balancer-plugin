@@ -114,6 +114,26 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     }
 
     /**
+     * Returns whether to enable the workaround for simultaneous builds, which throttles builds / only allows a single
+     * build to start within a certain time.
+     *
+     * @return whether to enable the workaround and throttle builds.
+     */
+    public boolean isSimultaneousBuildsWorkaroundEnabled() {
+        return getDescriptor().isSimultaneousBuildsWorkaroundEnabled();
+    }
+
+    /**
+     * Returns the throttle time of the workaround for simultaneous builds, which only allows a single build to start
+     * within the amount of milliseconds that is returned by this method.
+     *
+     * @return the throttle time in milliseconds of the workaround.
+     */
+    public int getSimultaneousBuildsWorkaroundThrottleTime() {
+        return getDescriptor().getSimultaneousBuildsWorkaroundThrottleTime();
+    }
+
+    /**
      * Constructor.
      *
      * @param fallback LoadBalancer to fall back. Specify originally registered LoadBalancer.
@@ -121,6 +141,8 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     public ScoringLoadBalancer(LoadBalancer fallback) {
         this.fallback = fallback;
     }
+
+    private long lastEvaluation = System.currentTimeMillis();
 
     /**
      * Decides nodes to run tasks on.
@@ -134,6 +156,15 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      */
     @Override
     public Mapping map(Task task, MappingWorksheet worksheet) {
+        if (isSimultaneousBuildsWorkaroundEnabled()) {
+            // Jenkins provides incomplete executors for simultaneous builds - throttle build starts:
+            // abort if last call isn't that long ago:
+            if (lastEvaluation > System.currentTimeMillis() - getSimultaneousBuildsWorkaroundThrottleTime()) {
+                return null;
+            }
+            this.lastEvaluation = System.currentTimeMillis();
+        }
+
         Mapping m = worksheet.new Mapping();
 
         // retrieve scoringRuleList not to behave inconsistently when configuration is updated.
@@ -299,6 +330,30 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
             return reportScoresEnabled;
         }
 
+        private boolean simultaneousBuildsWorkaroundEnabled = false;
+
+        /**
+         * Returns whether to enable the workaround for simultaneous builds, which throttles builds / only allows a
+         * single build to start within a certain time.
+         *
+         * @return whether to enable the workaround and throttle builds.
+         */
+        public boolean isSimultaneousBuildsWorkaroundEnabled() {
+            return simultaneousBuildsWorkaroundEnabled;
+        }
+
+        private int simultaneousBuildsWorkaroundThrottleTime = 1000;
+
+        /**
+         * Returns the throttle time of the workaround for simultaneous builds, which only allows a single build to
+         * start within the amount of milliseconds that is returned by this method.
+         *
+         * @return the throttle time in milliseconds of the workaround.
+         */
+        public int getSimultaneousBuildsWorkaroundThrottleTime() {
+            return simultaneousBuildsWorkaroundThrottleTime;
+        }
+
         private List<ScoringRule> scoringRuleList = Collections.emptyList();
 
         /**
@@ -333,6 +388,8 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         public boolean configure(StaplerRequest req, JSONObject json) throws hudson.model.Descriptor.FormException {
             enabled = json.getBoolean("enabled");
             reportScoresEnabled = json.getBoolean("reportScoresEnabled");
+            simultaneousBuildsWorkaroundEnabled = json.getBoolean("simultaneousBuildsWorkaroundEnabled");
+            simultaneousBuildsWorkaroundThrottleTime = json.getInt("simultaneousBuildsWorkaroundThrottleTime");
             scoringRuleList = req.bindJSONToList(ScoringRule.class, json.get("scoringRuleList"));
             save();
             return super.configure(req, json);
@@ -343,12 +400,21 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          *
          * @param enabled
          * @param reportScoresEnabled
+         * @param simultaneousBuildsWorkaroundEnabled
+         * @param simultaneousBuildsWorkaroundThrottleTime
          * @param scoringRuleList
          * @return
          */
-        public boolean configure(boolean enabled, boolean reportScoresEnabled, List<ScoringRule> scoringRuleList) {
+        public boolean configure(
+                boolean enabled,
+                boolean reportScoresEnabled,
+                boolean simultaneousBuildsWorkaroundEnabled,
+                int simultaneousBuildsWorkaroundThrottleTime,
+                List<ScoringRule> scoringRuleList) {
             this.enabled = enabled;
             this.reportScoresEnabled = reportScoresEnabled;
+            this.simultaneousBuildsWorkaroundEnabled = simultaneousBuildsWorkaroundEnabled;
+            this.simultaneousBuildsWorkaroundThrottleTime = simultaneousBuildsWorkaroundThrottleTime;
             this.scoringRuleList = scoringRuleList;
             save();
             return true;
@@ -359,11 +425,23 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          *
          * @param enabled
          * @param reportScoresEnabled
+         * @param simultaneousBuildsWorkaroundEnabled
+         * @param simultaneousBuildsWorkaroundThrottleTime
          * @param scoringRules
          * @return
          */
-        public boolean configure(boolean enabled, boolean reportScoresEnabled, ScoringRule... scoringRules) {
-            return configure(enabled, reportScoresEnabled, Arrays.asList(scoringRules));
+        public boolean configure(
+                boolean enabled,
+                boolean reportScoresEnabled,
+                boolean simultaneousBuildsWorkaroundEnabled,
+                int simultaneousBuildsWorkaroundThrottleTime,
+                ScoringRule... scoringRules) {
+            return configure(
+                    enabled,
+                    reportScoresEnabled,
+                    simultaneousBuildsWorkaroundEnabled,
+                    simultaneousBuildsWorkaroundThrottleTime,
+                    Arrays.asList(scoringRules));
         }
 
         /**
