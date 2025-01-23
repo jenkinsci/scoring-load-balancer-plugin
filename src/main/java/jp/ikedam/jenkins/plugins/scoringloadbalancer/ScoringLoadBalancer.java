@@ -142,7 +142,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         this.fallback = fallback;
     }
 
-    private long lastEvaluation = System.currentTimeMillis();
+    private long lastEvaluation = -1;
 
     /**
      * Decides nodes to run tasks on.
