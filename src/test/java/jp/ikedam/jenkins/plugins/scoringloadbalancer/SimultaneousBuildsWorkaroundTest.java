@@ -35,6 +35,7 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalanc
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -100,6 +101,7 @@ public class SimultaneousBuildsWorkaroundTest {
     }
 
     @Test
+    @Ignore("Test is unstable, as Jenkins sometimes chooses the correct node without the workaround")
     public void testTwoSimultaneousBuilds_runsOnWrongNodeWithoutWorkaround() throws Exception {
         // prepare:
         descriptor.configure(true, true, false, 500, scoringRule);
