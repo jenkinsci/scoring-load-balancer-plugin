@@ -103,7 +103,7 @@ public class DummySubTask implements SubTask {
         @Override
         public void run() {
             Node node = Computer.currentComputer().getNode();
-            LOGGER.info(String.format("%s was run on %s", DummySubTask.this.getDisplayName(), node.getNodeName()));
+            LOGGER.info(String.format("%s started on %s", DummySubTask.this.getDisplayName(), node.getNodeName()));
 
             try {
                 Thread.sleep(DummySubTask.this.duration);
@@ -112,6 +112,7 @@ public class DummySubTask implements SubTask {
                 return;
             }
 
+            LOGGER.info(String.format("%s finished", DummySubTask.this.getDisplayName()));
             DummySubTask.this.lastBuiltOn = node;
         }
 
