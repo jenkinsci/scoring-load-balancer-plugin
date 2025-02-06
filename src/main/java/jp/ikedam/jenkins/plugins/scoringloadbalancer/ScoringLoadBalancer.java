@@ -53,6 +53,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -274,6 +276,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      * Manages views and holds configuration for {@link ScoringLoadBalancer}.
      */
     @Extension
+    @Symbol("scoringLoadBalancer")
     public static class DescriptorImpl extends Descriptor<ScoringLoadBalancer> {
         private boolean enabled = true;
 
@@ -331,11 +334,12 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          */
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws hudson.model.Descriptor.FormException {
-            enabled = json.getBoolean("enabled");
-            reportScoresEnabled = json.getBoolean("reportScoresEnabled");
-            scoringRuleList = req.bindJSONToList(ScoringRule.class, json.get("scoringRuleList"));
+            // reset optional authentication to default before data-binding
+            this.enabled = true;
+            this.reportScoresEnabled = false;
+            req.bindJSON(this, json);
             save();
-            return super.configure(req, json);
+            return true;
         }
 
         /**
@@ -364,6 +368,21 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          */
         public boolean configure(boolean enabled, boolean reportScoresEnabled, ScoringRule... scoringRules) {
             return configure(enabled, reportScoresEnabled, Arrays.asList(scoringRules));
+        }
+
+        @DataBoundSetter
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @DataBoundSetter
+        public void setReportScoresEnabled(boolean reportScoresEnabled) {
+            this.reportScoresEnabled = reportScoresEnabled;
+        }
+
+        @DataBoundSetter
+        public void setScoringRuleList(List<ScoringRule> scoringRuleList) {
+            this.scoringRuleList = scoringRuleList;
         }
 
         /**
