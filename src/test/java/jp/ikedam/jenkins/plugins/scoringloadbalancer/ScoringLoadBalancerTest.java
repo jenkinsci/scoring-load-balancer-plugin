@@ -44,7 +44,7 @@ import org.junit.Test;
 /**
  * Test behavior of {@link ScoringLoadBalancer}
  */
-public class ScoringLoadBalanderTest {
+public class ScoringLoadBalancerTest {
     /**
      * How many times to build repeatedly to verify it runs on an expected node.
      */
