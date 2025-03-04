@@ -1,0 +1,19 @@
+unclassified:
+  scoringLoadBalancer:
+    enabled: false
+    reportScoresEnabled: true
+    scoringRuleList:
+    - nodeLoadScoringRule:
+        scale: 20
+        scoreForIdleExecutor: 2
+        scoreForBusyExecutor: -2
+    - nodePreferenceScoringRule:
+        nodesPreferenceScale: 30
+        projectPreferenceScale: 35
+    - buildResultScoringRule:
+        numberOfBuilds: 15
+        scale: 40
+        scaleAdjustForOlder: -3
+        scoreForSuccess: 3
+        scoreForUnstable: -4
+        scoreForFailure: -5

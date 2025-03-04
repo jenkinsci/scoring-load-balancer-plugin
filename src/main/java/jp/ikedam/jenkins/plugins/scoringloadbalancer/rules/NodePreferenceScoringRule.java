@@ -46,6 +46,7 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceJobProperty;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceNodeProperty;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
@@ -158,6 +159,7 @@ public class NodePreferenceScoringRule extends ScoringRule {
      * Manages views for {@link NodePreferenceScoringRule}
      */
     @Extension
+    @Symbol("nodePreferenceScoringRule")
     public static class DescriptorImpl extends Descriptor<ScoringRule> {
         /**
          * Returns the name to display.

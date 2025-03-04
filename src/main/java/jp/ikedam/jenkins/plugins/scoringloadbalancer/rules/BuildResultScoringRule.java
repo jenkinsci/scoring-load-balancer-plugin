@@ -40,6 +40,7 @@ import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
@@ -175,6 +176,7 @@ public class BuildResultScoringRule extends ScoringRule {
      * Manages views for {@link BuildResultScoringRule}
      */
     @Extension
+    @Symbol("buildResultScoringRule")
     public static class DescriptorImpl extends Descriptor<ScoringRule> {
         /**
          * Returns the name to display.
