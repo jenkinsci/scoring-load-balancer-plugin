@@ -24,23 +24,22 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import hudson.util.FormValidation;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.BuildResultScoringRule.DescriptorImpl;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * Now needs jenkins too for FormValidation
  */
-public class BuildResultScoringRuleNoJenkinsTest {
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+@WithJenkins
+class BuildResultScoringRuleNoJenkinsTest {
 
     @Test
-    public void testBuildResultScoringRule() {
+    void testBuildResultScoringRule(JenkinsRule j) {
         {
             BuildResultScoringRule target = new BuildResultScoringRule(10, 123, -3, 5, -2, -9);
             assertEquals(10, target.getNumberOfBuilds());
@@ -62,7 +61,7 @@ public class BuildResultScoringRuleNoJenkinsTest {
     }
 
     @Test
-    public void testDescriptor_doCheckNumberOfBuilds() {
+    void testDescriptor_doCheckNumberOfBuilds(JenkinsRule j) {
         DescriptorImpl descriptor = new DescriptorImpl();
         {
             FormValidation v = descriptor.doCheckNumberOfBuilds("999");
