@@ -24,12 +24,12 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue.Task;
 import hudson.model.queue.SubTask;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,9 +37,9 @@ import java.util.logging.Logger;
  *
  */
 public class DummySubTask implements SubTask {
-    private static Logger LOGGER = Logger.getLogger(DummySubTask.class.getName());
-    private String name;
-    private Task owner;
+    private static final Logger LOGGER = Logger.getLogger(DummySubTask.class.getName());
+    private final String name;
+    private final Task owner;
     private Object sameNodeConstraint;
     private Node lastBuiltOn;
     private long duration = 5;
@@ -53,11 +53,12 @@ public class DummySubTask implements SubTask {
     }
 
     @Override
-    public Executable createExecutable() throws IOException {
+    public Executable createExecutable() {
         return new Executable();
     }
 
     @Override
+    @NonNull
     public Task getOwnerTask() {
         return owner;
     }
@@ -96,6 +97,7 @@ public class DummySubTask implements SubTask {
 
     public class Executable implements hudson.model.Queue.Executable {
         @Override
+        @NonNull
         public DummySubTask getParent() {
             return DummySubTask.this;
         }

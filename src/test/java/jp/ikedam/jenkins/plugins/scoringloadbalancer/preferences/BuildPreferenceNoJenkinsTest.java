@@ -24,16 +24,18 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *
  */
-public class BuildPreferenceNoJenkinsTest {
+class BuildPreferenceNoJenkinsTest {
+
     @Test
-    public void testBuildPreference() {
+    void testBuildPreference() {
         {
             BuildPreference target = new BuildPreference("node1", 10);
             assertEquals("node1", target.getLabelExpression());
@@ -48,7 +50,7 @@ public class BuildPreferenceNoJenkinsTest {
 
         {
             BuildPreference target = new BuildPreference(null, 0);
-            assertEquals(null, target.getLabelExpression());
+            assertNull(target.getLabelExpression());
             assertEquals(0, target.getPreference());
         }
 
