@@ -39,12 +39,12 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
  * ScoringRule used for Test.
  */
 public class TestingScoringRule extends ScoringRule {
-    public List<WorkChunk> calledWorkChunkList = new ArrayList<WorkChunk>();
-    public List<NodesScore> nodesScoreList = new ArrayList<NodesScore>();
+    public final List<WorkChunk> calledWorkChunkList = new ArrayList<>();
+    public final List<NodesScore> nodesScoreList = new ArrayList<>();
     public boolean result = true;
-    public boolean reset = false;
+    public final boolean reset = false;
     public boolean reject = false;
-    public Map<Node, Integer> scoreMap = new HashMap<Node, Integer>();
+    public final Map<Node, Integer> scoreMap = new HashMap<>();
     public Exception e = null;
 
     public void clear() {
