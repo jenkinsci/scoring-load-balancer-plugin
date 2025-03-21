@@ -24,6 +24,7 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
@@ -37,7 +38,7 @@ import java.util.List;
  *
  */
 public class TriggerOtherProjectProperty extends JobProperty<AbstractProject<?, ?>> {
-    private List<SubTask> subTaskList;
+    private final List<SubTask> subTaskList;
 
     public TriggerOtherProjectProperty(SubTask... tasks) {
         subTaskList = Arrays.asList(tasks);
@@ -51,6 +52,7 @@ public class TriggerOtherProjectProperty extends JobProperty<AbstractProject<?, 
     @Extension
     public static class DescriptorImpl extends JobPropertyDescriptor {
         @Override
+        @NonNull
         public String getDisplayName() {
             return "Property For Triggering other Project at the same time.";
         }
