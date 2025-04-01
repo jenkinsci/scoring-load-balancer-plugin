@@ -23,31 +23,33 @@
  */
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Slave;
+import hudson.slaves.DumbSlave;
+import hudson.slaves.RetentionStrategy;
+import java.io.File;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * Test the optional workaround feature, which fixes scheduling for builds that are started at the same time.
  */
-public class SimultaneousBuildsWorkaroundTest {
+@WithJenkins
+class SimultaneousBuildsWorkaroundTest {
 
     private static final int BUILD_TIMEOUT = 20;
 
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+    private JenkinsRule j;
 
     TestingScoringRule scoringRule;
     DescriptorImpl descriptor;
@@ -58,11 +60,41 @@ public class SimultaneousBuildsWorkaroundTest {
     FreeStyleProject p2;
     DummySubTask d2;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule j) throws Exception {
+        this.j = j;
         scoringRule = new TestingScoringRule();
         descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
-        node0 = j.createOnlineSlave("node0", 4);
+        node0 = createOnlineSlave("node0", 4);
+    }
+
+    @Test
+    @Disabled("Test is unstable, as Jenkins sometimes chooses the correct node without the workaround")
+    void testTwoSimultaneousBuilds_runsOnWrongNodeWithoutWorkaround() throws Exception {
+        // prepare:
+        descriptor.configure(true, true, false, 500, scoringRule);
+
+        FreeStyleBuild b2 = commonTwoSimultaneousBuildsTest();
+
+        // assert:
+        assertEquals(j.jenkins, b2.getBuiltOn()); // without the workaround, the build-in node is erroneously chosen
+
+        assertEquals(j.jenkins, p2.getLastBuiltOn());
+        assertEquals(j.jenkins, d2.getLastBuiltOn());
+    }
+
+    @Test
+    void testTwoSimultaneousBuilds_okWithWorkaround() throws Exception {
+        // prepare:
+        descriptor.configure(true, true, true, 500, scoringRule);
+
+        FreeStyleBuild b2 = commonTwoSimultaneousBuildsTest();
+
+        // assert:
+        assertEquals(node0, b2.getBuiltOn()); // with the workaround, the preferred node is chosen
+
+        assertEquals(node0, p2.getLastBuiltOn());
+        assertEquals(node0, d2.getLastBuiltOn());
     }
 
     private FreeStyleBuild commonTwoSimultaneousBuildsTest() throws Exception {
@@ -100,32 +132,21 @@ public class SimultaneousBuildsWorkaroundTest {
         return b2;
     }
 
-    @Test
-    @Ignore("Test is unstable, as Jenkins sometimes chooses the correct node without the workaround")
-    public void testTwoSimultaneousBuilds_runsOnWrongNodeWithoutWorkaround() throws Exception {
-        // prepare:
-        descriptor.configure(true, true, false, 500, scoringRule);
+    private DumbSlave createOnlineSlave(String label, int numExecutor) throws Exception {
+        DumbSlave slave;
+        synchronized (j.jenkins) {
+            String nodeName = String.format("slave%d", j.jenkins.getNodes().size());
+            slave = new DumbSlave(
+                    nodeName,
+                    new File(j.jenkins.getRootDir(), "agent-work-dirs/" + nodeName).getAbsolutePath(),
+                    j.createComputerLauncher(null));
+            slave.setLabelString(label);
+            slave.setNumExecutors(numExecutor);
+            slave.setRetentionStrategy(RetentionStrategy.NOOP);
+            j.jenkins.addNode(slave);
+        }
 
-        FreeStyleBuild b2 = commonTwoSimultaneousBuildsTest();
-
-        // assert:
-        assertEquals(j.jenkins, b2.getBuiltOn()); // without the workaround, the build-in node is erroneously chosen
-
-        assertEquals(j.jenkins, p2.getLastBuiltOn());
-        assertEquals(j.jenkins, d2.getLastBuiltOn());
-    }
-
-    @Test
-    public void testTwoSimultaneousBuilds_okWithWorkaround() throws Exception {
-        // prepare:
-        descriptor.configure(true, true, true, 500, scoringRule);
-
-        FreeStyleBuild b2 = commonTwoSimultaneousBuildsTest();
-
-        // assert:
-        assertEquals(node0, b2.getBuiltOn()); // with the workaround, the preferred node is chosen
-
-        assertEquals(node0, p2.getLastBuiltOn());
-        assertEquals(node0, d2.getLastBuiltOn());
+        j.waitOnline(slave);
+        return slave;
     }
 }
