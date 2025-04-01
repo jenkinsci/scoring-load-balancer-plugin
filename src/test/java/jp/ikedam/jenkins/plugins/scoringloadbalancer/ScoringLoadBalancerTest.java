@@ -24,6 +24,7 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -36,10 +37,12 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
+import net.sf.json.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Test behavior of {@link ScoringLoadBalancer}
@@ -112,6 +115,21 @@ public class ScoringLoadBalancerTest {
                 assertEquals(node2, b.getBuiltOn());
             }
         }
+    }
+
+    @Test
+    public void testDefaultConfig() throws Exception {
+        final JSONObject json = new JSONObject();
+        final StaplerRequest req = mock(StaplerRequest.class);
+
+        final boolean configurationResult = descriptor.configure(req, json);
+
+        assertTrue(configurationResult);
+        assertTrue(descriptor.isEnabled());
+        assertFalse(descriptor.isReportScoresEnabled());
+        assertFalse(descriptor.isSimultaneousBuildsWorkaroundEnabled());
+        assertEquals(1000, descriptor.getSimultaneousBuildsWorkaroundThrottleTime());
+        verify(req).bindJSON(descriptor, json);
     }
 
     @Test
