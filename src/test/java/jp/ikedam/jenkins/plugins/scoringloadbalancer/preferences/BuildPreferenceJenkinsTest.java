@@ -24,7 +24,7 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import hudson.model.AutoCompletionCandidates;
@@ -33,29 +33,23 @@ import hudson.util.FormValidation;
 import java.util.Arrays;
 import java.util.Collections;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference.DescriptorImpl;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  *
  */
-public class BuildPreferenceJenkinsTest {
+@WithJenkins
+class BuildPreferenceJenkinsTest {
     Item item = mock(Item.class);
 
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
-
-    private DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) j.jenkins.getDescriptorOrDie(BuildPreference.class);
-    }
-
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testDescriptor_doCheckLabelExpressionOk() throws Exception {
+    void testDescriptor_doCheckLabelExpressionOk(JenkinsRule j) throws Exception {
         j.createSlave("node1", "label1", null);
-        DescriptorImpl descriptor = getDescriptor();
+        DescriptorImpl descriptor = getDescriptor(j);
 
         {
             FormValidation v = descriptor.doCheckLabelExpression("master", null);
@@ -79,9 +73,9 @@ public class BuildPreferenceJenkinsTest {
     }
 
     @Test
-    public void testDescriptor_doCheckLabelExpressionWarning() throws Exception {
+    void testDescriptor_doCheckLabelExpressionWarning(JenkinsRule j) throws Exception {
         j.createSlave("node1", "label1", null);
-        DescriptorImpl descriptor = getDescriptor();
+        DescriptorImpl descriptor = getDescriptor(j);
         {
             FormValidation v = descriptor.doCheckLabelExpression("nolabel", null);
             assertEquals(FormValidation.Kind.WARNING, v.kind);
@@ -99,8 +93,8 @@ public class BuildPreferenceJenkinsTest {
     }
 
     @Test
-    public void testDescriptor_doCheckLabelExpressionError() throws Exception {
-        DescriptorImpl descriptor = getDescriptor();
+    void testDescriptor_doCheckLabelExpressionError(JenkinsRule j) {
+        DescriptorImpl descriptor = getDescriptor(j);
         {
             FormValidation v = descriptor.doCheckLabelExpression(null, null);
             assertEquals(FormValidation.Kind.ERROR, v.kind);
@@ -127,13 +121,13 @@ public class BuildPreferenceJenkinsTest {
         }
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testDescriptor_doAutoCompleteLabelExpression() throws Exception {
+    void testDescriptor_doAutoCompleteLabelExpression(JenkinsRule j) throws Exception {
         j.createSlave("node1", "label1", null);
         j.createSlave("node2", "label1", null);
 
-        DescriptorImpl descriptor = getDescriptor();
+        DescriptorImpl descriptor = getDescriptor(j);
         {
             AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression(null, null);
             assertEquals(Collections.emptyList(), c.getValues());
@@ -188,5 +182,9 @@ public class BuildPreferenceJenkinsTest {
             AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("!m", null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
+    }
+
+    private static DescriptorImpl getDescriptor(JenkinsRule j) {
+        return (DescriptorImpl) j.jenkins.getDescriptorOrDie(BuildPreference.class);
     }
 }

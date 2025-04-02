@@ -24,26 +24,25 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import hudson.model.FreeStyleProject;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import org.htmlunit.html.HtmlCheckBoxInput;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  *
  */
-public class BuildPreferenceJobPropertyTest {
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+@WithJenkins
+class BuildPreferenceJobPropertyTest {
 
     @Test
-    public void testConfiguration() throws Exception {
+    void testConfiguration(JenkinsRule j) throws Exception {
         WebClient wc = j.createWebClient();
         FreeStyleProject p = j.createFreeStyleProject();
 

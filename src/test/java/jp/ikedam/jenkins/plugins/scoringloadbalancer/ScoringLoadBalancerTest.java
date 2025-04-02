@@ -23,7 +23,7 @@
  */
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -33,18 +33,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * Test behavior of {@link ScoringLoadBalancer}
  */
-public class ScoringLoadBalancerTest {
+@WithJenkins
+class ScoringLoadBalancerTest {
     /**
      * How many times to build repeatedly to verify it runs on an expected node.
      */
@@ -52,8 +53,7 @@ public class ScoringLoadBalancerTest {
 
     private static final int BUILD_TIMEOUT = 10;
 
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+    private JenkinsRule j;
 
     TestingScoringRule scoringRule;
     DescriptorImpl descriptor;
@@ -61,8 +61,9 @@ public class ScoringLoadBalancerTest {
     Slave node2;
     Slave node3;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule j) throws Exception {
+        this.j = j;
         scoringRule = new TestingScoringRule();
         descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
         node1 = j.createOnlineSlave();
@@ -75,7 +76,7 @@ public class ScoringLoadBalancerTest {
      * @throws Exception
      */
     @Test
-    public void testSimple() throws Exception {
+    void testSimple() throws Exception {
         descriptor.configure(true, true, scoringRule);
         FreeStyleProject p = j.createFreeStyleProject();
 
@@ -115,7 +116,7 @@ public class ScoringLoadBalancerTest {
     }
 
     @Test
-    public void testMultipleRules() throws Exception {
+    void testMultipleRules() throws Exception {
         TestingScoringRule scoringRule2 = new TestingScoringRule();
         descriptor.configure(true, true, scoringRule, scoringRule2);
         FreeStyleProject p = j.createFreeStyleProject();
@@ -145,7 +146,7 @@ public class ScoringLoadBalancerTest {
     }
 
     @Test
-    public void testDisabled() throws Exception {
+    void testDisabled() throws Exception {
         descriptor.configure(false, true, scoringRule);
         FreeStyleProject p = j.createFreeStyleProject();
 
@@ -157,7 +158,7 @@ public class ScoringLoadBalancerTest {
     }
 
     @Test
-    public void testException() throws Exception {
+    void testException() throws Exception {
         descriptor.configure(true, true, scoringRule);
         scoringRule.e = new Exception("Testing Exception");
         FreeStyleProject p = j.createFreeStyleProject();
@@ -171,7 +172,7 @@ public class ScoringLoadBalancerTest {
     }
 
     @Test
-    public void testStopSubsequent() throws Exception {
+    void testStopSubsequent() throws Exception {
         TestingScoringRule scoringRule2 = new TestingScoringRule();
         descriptor.configure(true, true, scoringRule, scoringRule2);
         FreeStyleProject p = j.createFreeStyleProject();
@@ -201,17 +202,17 @@ public class ScoringLoadBalancerTest {
         }
     }
 
-    @Test(expected = TimeoutException.class)
-    public void testRejecting() throws Exception {
+    @Test
+    void testRejecting() throws Exception {
         descriptor.configure(true, true, scoringRule);
         scoringRule.reject = true;
         FreeStyleProject p = j.createFreeStyleProject();
 
-        p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        assertThrows(TimeoutException.class, () -> p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
     }
 
     @Test
-    public void testMultipleTasks() throws Exception {
+    void testMultipleTasks() throws Exception {
         descriptor.configure(true, true, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
@@ -226,11 +227,10 @@ public class ScoringLoadBalancerTest {
         j.assertBuildStatusSuccess(b2);
     }
 
-    @Ignore("TODO: fix me #15")
-    @Test(expected = TimeoutException.class)
-    public void testMultipleTasksShortage() throws Exception {
+    @Disabled("TODO: fix me #15")
+    @Test
+    void testMultipleTasksShortage() throws Exception {
         descriptor.configure(true, true, scoringRule);
-
         FreeStyleProject p1 = j.createFreeStyleProject();
         p1.setAssignedLabel(LabelExpression.parseExpression("!master"));
         FreeStyleProject p2 = j.createFreeStyleProject();
@@ -240,11 +240,11 @@ public class ScoringLoadBalancerTest {
         node2.toComputer().disconnect(null).get();
         node3.toComputer().disconnect(null).get();
 
-        p1.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        assertThrows(TimeoutException.class, () -> p1.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
     }
 
     @Test
-    public void testMultipleTasksWithConstraint() throws Exception {
+    void testMultipleTasksWithConstraint() throws Exception {
         descriptor.configure(true, true, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
@@ -280,9 +280,9 @@ public class ScoringLoadBalancerTest {
         }
     }
 
-    @Ignore("TODO: fix me #15")
-    @Test(expected = TimeoutException.class)
-    public void testMultipleTasksWithConstraintShortage() throws Exception {
+    @Disabled("TODO: fix me #15")
+    @Test
+    void testMultipleTasksWithConstraintShortage() throws Exception {
         descriptor.configure(true, true, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
@@ -291,19 +291,21 @@ public class ScoringLoadBalancerTest {
         p1.addProperty(new TriggerOtherProjectProperty(p2));
         p1.setAssignedLabel(LabelExpression.parseExpression("!master"));
 
-        // Run on master (only can run on master)
-        {
-            assertEquals(1, node1.getNumExecutors());
-            assertEquals(1, node2.getNumExecutors());
-            assertEquals(1, node3.getNumExecutors());
+        assertThrows(TimeoutException.class, () -> {
+            // Run on master (only can run on master)
+            {
+                assertEquals(1, node1.getNumExecutors());
+                assertEquals(1, node2.getNumExecutors());
+                assertEquals(1, node3.getNumExecutors());
 
-            scoringRule.scoreMap.clear();
-            scoringRule.scoreMap.put(j.jenkins, -9999);
-            scoringRule.scoreMap.put(node1, 9999);
-            scoringRule.scoreMap.put(node2, 9999);
-            scoringRule.scoreMap.put(node3, 9999);
+                scoringRule.scoreMap.clear();
+                scoringRule.scoreMap.put(j.jenkins, -9999);
+                scoringRule.scoreMap.put(node1, 9999);
+                scoringRule.scoreMap.put(node2, 9999);
+                scoringRule.scoreMap.put(node3, 9999);
 
-            p1.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
-        }
+                p1.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+            }
+        });
     }
 }

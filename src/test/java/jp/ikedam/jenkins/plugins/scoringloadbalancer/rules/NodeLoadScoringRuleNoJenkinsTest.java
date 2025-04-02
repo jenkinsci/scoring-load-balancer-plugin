@@ -24,16 +24,17 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *
  */
-public class NodeLoadScoringRuleNoJenkinsTest {
+class NodeLoadScoringRuleNoJenkinsTest {
+
     @Test
-    public void testNodeLoadScoringRule() {
+    void testNodeLoadScoringRule() {
         {
             NodeLoadScoringRule target = new NodeLoadScoringRule(10, 1, -1);
             assertEquals(10, target.getScale());

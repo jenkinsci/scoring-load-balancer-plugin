@@ -24,17 +24,18 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.util;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import hudson.util.FormValidation;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *
  */
-public class ValidationUtilTest {
+class ValidationUtilTest {
+
     @Test
-    public void testDoCheckInteger() {
+    void testDoCheckInteger() {
         {
             FormValidation v = ValidationUtil.doCheckInteger("999");
             assertEquals(FormValidation.Kind.OK, v.kind);
