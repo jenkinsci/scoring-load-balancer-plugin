@@ -24,7 +24,7 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import hudson.matrix.AxisList;
 import hudson.matrix.Combination;
@@ -42,26 +42,27 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceJobProperty;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceNodeProperty;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  *
  */
-public class NodePreferenceScoringRuleJenkinsTest {
-    private static int BUILD_TIMEOUT = 10;
+@WithJenkins
+class NodePreferenceScoringRuleJenkinsTest {
+    private static final int BUILD_TIMEOUT = 10;
 
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+    private JenkinsRule j;
 
     TestingScoringRule testScoringRule;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule j) {
+        this.j = j;
         testScoringRule = new TestingScoringRule();
     }
 
@@ -70,9 +71,9 @@ public class NodePreferenceScoringRuleJenkinsTest {
         descriptor.configure(true, true, scoringRule, testScoringRule);
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testNodePreference() throws Exception {
+    void testNodePreference() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(4, -1));
 
         j.jenkins.getNodeProperties().add(new BuildPreferenceNodeProperty(10));
@@ -89,9 +90,9 @@ public class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testProjectPreference() throws Exception {
+    void testProjectPreference() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(4, -1));
 
         DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
@@ -111,15 +112,15 @@ public class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(-2, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testProjectPreferenceForMatrix() throws Exception {
+    void testProjectPreferenceForMatrix() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(4, 2));
 
         DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
         DumbSlave node2 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
 
-        MatrixProject p = j.createMatrixProject();
+        MatrixProject p = j.createProject(MatrixProject.class);
         p.setAxes(new AxisList(new TextAxis("axis1", "value1")));
         p.addProperty(new BuildPreferenceJobProperty(Arrays.asList(
                 new BuildPreference("master", 1),
@@ -139,9 +140,9 @@ public class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(4, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testProjectPreferenceNull() throws Exception {
+    void testProjectPreferenceNull() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(1, -1));
 
         DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
@@ -158,9 +159,9 @@ public class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testProjectPreferenceEmpty() throws Exception {
+    void testProjectPreferenceEmpty() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(1, -1));
 
         DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));

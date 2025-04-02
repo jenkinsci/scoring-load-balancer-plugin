@@ -24,51 +24,61 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.FreeStyleProject;
-import hudson.model.Node;
 import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.labels.LabelExpression;
+import hudson.model.listeners.RunListener;
+import hudson.slaves.DumbSlave;
+import hudson.slaves.RetentionStrategy;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SleepBuilder;
+import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  *
  */
-public class NodeLoadScoringRuleJenkinsTest {
+@WithJenkins
+class NodeLoadScoringRuleJenkinsTest {
     private static int BUILD_TIMEOUT = 10;
 
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+    private static final Lock buildStartLock = new ReentrantLock();
+    private static final Condition buildStartCondition = buildStartLock.newCondition();
+
+    private JenkinsRule j;
 
     TestingScoringRule testScoringRule;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule j) {
+        this.j = j;
         testScoringRule = new TestingScoringRule();
     }
 
-    private void setScoringRule(ScoringRule scoringRule) {
-        DescriptorImpl descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
-        descriptor.configure(true, true, scoringRule, testScoringRule);
-    }
-
     @Test
-    public void testIdleScore() throws Exception {
-        Node node1 = j.createOnlineSlave("node", 3);
-        Node node2 = j.createOnlineSlave("node", 2);
+    void testIdleScore() throws Exception {
+        DumbSlave node1 = createOnlineSlave("node", 3);
+        DumbSlave node2 = createOnlineSlave("node", 2);
 
         setScoringRule(new NodeLoadScoringRule(10, 3, 0));
 
@@ -95,7 +105,7 @@ public class NodeLoadScoringRuleJenkinsTest {
         assertEquals(60, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node1
-        j.startBuild(node1Project, BUILD_TIMEOUT);
+        startBuild(node1Project, BUILD_TIMEOUT);
 
         // node1 idle 2
         // node2 idle 2
@@ -106,7 +116,7 @@ public class NodeLoadScoringRuleJenkinsTest {
         assertEquals(60, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node2
-        j.startBuild(node2Project, BUILD_TIMEOUT);
+        startBuild(node2Project, BUILD_TIMEOUT);
 
         // node1 idle 2
         // node2 idle 1
@@ -139,8 +149,8 @@ public class NodeLoadScoringRuleJenkinsTest {
     }
 
     @Test
-    public void testIdleScoreForTaskset() throws Exception {
-        Node node1 = j.createOnlineSlave("node", 4);
+    void testIdleScoreForTaskset() throws Exception {
+        DumbSlave node1 = createOnlineSlave("node", 4);
         setScoringRule(new NodeLoadScoringRule(5, 3, 0));
 
         FreeStyleProject testingProject = j.createFreeStyleProject();
@@ -168,9 +178,9 @@ public class NodeLoadScoringRuleJenkinsTest {
     }
 
     @Test
-    public void testBusyScore() throws Exception {
-        Node node1 = j.createOnlineSlave("node", 3);
-        Node node2 = j.createOnlineSlave("node", 2);
+    void testBusyScore() throws Exception {
+        DumbSlave node1 = createOnlineSlave("node", 3);
+        DumbSlave node2 = createOnlineSlave("node", 2);
 
         setScoringRule(new NodeLoadScoringRule(10, 0, -2));
 
@@ -197,7 +207,7 @@ public class NodeLoadScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node1
-        j.startBuild(node1Project, BUILD_TIMEOUT);
+        startBuild(node1Project, BUILD_TIMEOUT);
 
         // node1 busy 1
         // node2 busy 0
@@ -208,9 +218,9 @@ public class NodeLoadScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node1
-        j.startBuild(node1Project, BUILD_TIMEOUT);
+        startBuild(node1Project, BUILD_TIMEOUT);
         // build on node2
-        j.startBuild(node2Project, BUILD_TIMEOUT);
+        startBuild(node2Project, BUILD_TIMEOUT);
 
         // node1 busy 2
         // node2 busy 1
@@ -243,8 +253,8 @@ public class NodeLoadScoringRuleJenkinsTest {
     }
 
     @Test
-    public void testBusyScoreForTaskset() throws Exception {
-        Node node1 = j.createOnlineSlave("node", 4);
+    void testBusyScoreForTaskset() throws Exception {
+        DumbSlave node1 = createOnlineSlave("node", 4);
         setScoringRule(new NodeLoadScoringRule(5, 0, -2));
 
         FreeStyleProject testingProject = j.createFreeStyleProject();
@@ -272,9 +282,56 @@ public class NodeLoadScoringRuleJenkinsTest {
     }
 
     @Test
-    public void testDescriptor() {
+    void testDescriptor() {
         @SuppressWarnings("unused")
         NodePreferenceScoringRule.DescriptorImpl descriptor = (NodePreferenceScoringRule.DescriptorImpl)
                 j.jenkins.getDescriptorOrDie(NodePreferenceScoringRule.class);
+    }
+
+    private DumbSlave createOnlineSlave(String label, int numExecutor) throws Exception {
+        DumbSlave slave;
+        synchronized (j.jenkins) {
+            String nodeName = String.format("slave%d", j.jenkins.getNodes().size());
+            slave = new DumbSlave(
+                    nodeName,
+                    new File(j.jenkins.getRootDir(), "agent-work-dirs/" + nodeName).getAbsolutePath(),
+                    j.createComputerLauncher(null));
+            slave.setLabelString(label);
+            slave.setNumExecutors(numExecutor);
+            slave.setRetentionStrategy(RetentionStrategy.NOOP);
+            j.jenkins.addNode(slave);
+        }
+
+        j.waitOnline(slave);
+        return slave;
+    }
+
+    private static void startBuild(AbstractProject<?, ?> p, int timeoutsecs) throws InterruptedException {
+        buildStartLock.lock();
+        try {
+            p.scheduleBuild2(0);
+            assertTrue(buildStartCondition.await(timeoutsecs, TimeUnit.SECONDS));
+        } finally {
+            buildStartLock.unlock();
+        }
+    }
+
+    private void setScoringRule(ScoringRule scoringRule) {
+        DescriptorImpl descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
+        descriptor.configure(true, true, scoringRule, testScoringRule);
+    }
+
+    @TestExtension
+    @SuppressWarnings("unused")
+    public static class BuildStartListener extends RunListener<Run<?, ?>> {
+        @Override
+        public void onStarted(hudson.model.Run<?, ?> r, TaskListener listener) {
+            buildStartLock.lock();
+            try {
+                buildStartCondition.signalAll();
+            } finally {
+                buildStartLock.unlock();
+            }
+        }
     }
 }
