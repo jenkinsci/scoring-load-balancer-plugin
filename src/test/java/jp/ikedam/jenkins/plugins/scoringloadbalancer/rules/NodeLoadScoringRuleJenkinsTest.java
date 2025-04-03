@@ -318,7 +318,7 @@ class NodeLoadScoringRuleJenkinsTest {
 
     private void setScoringRule(ScoringRule scoringRule) {
         DescriptorImpl descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
-        descriptor.configure(true, true, scoringRule, testScoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule, testScoringRule);
     }
 
     @TestExtension

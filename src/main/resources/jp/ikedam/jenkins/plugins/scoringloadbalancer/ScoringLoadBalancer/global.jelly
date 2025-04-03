@@ -31,6 +31,12 @@ THE SOFTWARE.
       <f:entry title="${%Log Scores}" field="reportScoresEnabled">
         <f:checkbox />
       </f:entry>
+      <f:entry title="${%Enable workaround for simultaneous builds}" field="simultaneousBuildsWorkaroundEnabled">
+        <f:checkbox />
+      </f:entry>
+      <f:entry title="${%Throttle time in ms for simultaneous builds workaround}" field="simultaneousBuildsWorkaroundThrottleTime">
+        <f:number default="1000" min="0" max="2000000000" />
+      </f:entry>
     </f:advanced>
     <f:entry title="${%Scoring Rules}" field="scoringRuleList">
       <f:hetero-list name="scoringRuleList" hasHeader="true"

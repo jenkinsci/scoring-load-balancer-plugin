@@ -22,6 +22,8 @@ class ConfigurationAsCodeTest {
         assertEquals(1, loadBalancerDescriptors.size());
         assertFalse(loadBalancerDescriptors.get(0).isEnabled());
         assertTrue(loadBalancerDescriptors.get(0).isReportScoresEnabled());
+        assertTrue(loadBalancerDescriptors.get(0).isSimultaneousBuildsWorkaroundEnabled());
+        assertEquals(2000, loadBalancerDescriptors.get(0).getSimultaneousBuildsWorkaroundThrottleTime());
 
         var scoringRules = loadBalancerDescriptors.get(0).getScoringRuleList();
 

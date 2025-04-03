@@ -24,6 +24,7 @@
 package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -35,11 +36,13 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.Descrip
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
+import net.sf.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Test behavior of {@link ScoringLoadBalancer}
@@ -77,7 +80,7 @@ class ScoringLoadBalancerTest {
      */
     @Test
     void testSimple() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
         FreeStyleProject p = j.createFreeStyleProject();
 
         // Run on master
@@ -116,9 +119,24 @@ class ScoringLoadBalancerTest {
     }
 
     @Test
+    public void testDefaultConfig() throws Exception {
+        final JSONObject json = new JSONObject();
+        final StaplerRequest req = mock(StaplerRequest.class);
+
+        final boolean configurationResult = descriptor.configure(req, json);
+
+        assertTrue(configurationResult);
+        assertTrue(descriptor.isEnabled());
+        assertFalse(descriptor.isReportScoresEnabled());
+        assertFalse(descriptor.isSimultaneousBuildsWorkaroundEnabled());
+        assertEquals(1000, descriptor.getSimultaneousBuildsWorkaroundThrottleTime());
+        verify(req).bindJSON(descriptor, json);
+    }
+
+    @Test
     void testMultipleRules() throws Exception {
         TestingScoringRule scoringRule2 = new TestingScoringRule();
-        descriptor.configure(true, true, scoringRule, scoringRule2);
+        descriptor.configure(true, true, false, 0, scoringRule, scoringRule2);
         FreeStyleProject p = j.createFreeStyleProject();
 
         // Run on node1
@@ -147,7 +165,7 @@ class ScoringLoadBalancerTest {
 
     @Test
     void testDisabled() throws Exception {
-        descriptor.configure(false, true, scoringRule);
+        descriptor.configure(false, true, false, 0, scoringRule);
         FreeStyleProject p = j.createFreeStyleProject();
 
         FreeStyleBuild b = p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
@@ -159,7 +177,7 @@ class ScoringLoadBalancerTest {
 
     @Test
     void testException() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
         scoringRule.e = new Exception("Testing Exception");
         FreeStyleProject p = j.createFreeStyleProject();
 
@@ -174,7 +192,7 @@ class ScoringLoadBalancerTest {
     @Test
     void testStopSubsequent() throws Exception {
         TestingScoringRule scoringRule2 = new TestingScoringRule();
-        descriptor.configure(true, true, scoringRule, scoringRule2);
+        descriptor.configure(true, true, false, 0, scoringRule, scoringRule2);
         FreeStyleProject p = j.createFreeStyleProject();
         scoringRule.result = false;
 
@@ -204,7 +222,7 @@ class ScoringLoadBalancerTest {
 
     @Test
     void testRejecting() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
         scoringRule.reject = true;
         FreeStyleProject p = j.createFreeStyleProject();
 
@@ -213,7 +231,7 @@ class ScoringLoadBalancerTest {
 
     @Test
     void testMultipleTasks() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         FreeStyleProject p2 = j.createFreeStyleProject();
@@ -230,7 +248,7 @@ class ScoringLoadBalancerTest {
     @Disabled("TODO: fix me #15")
     @Test
     void testMultipleTasksShortage() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
         FreeStyleProject p1 = j.createFreeStyleProject();
         p1.setAssignedLabel(LabelExpression.parseExpression("!master"));
         FreeStyleProject p2 = j.createFreeStyleProject();
@@ -245,7 +263,7 @@ class ScoringLoadBalancerTest {
 
     @Test
     void testMultipleTasksWithConstraint() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         DummySubTask p2 = new DummySubTask("Bound task", p1, 5000);
@@ -283,7 +301,7 @@ class ScoringLoadBalancerTest {
     @Disabled("TODO: fix me #15")
     @Test
     void testMultipleTasksWithConstraintShortage() throws Exception {
-        descriptor.configure(true, true, scoringRule);
+        descriptor.configure(true, true, false, 0, scoringRule);
 
         FreeStyleProject p1 = j.createFreeStyleProject();
         DummySubTask p2 = new DummySubTask("Bound task", p1, 5000);

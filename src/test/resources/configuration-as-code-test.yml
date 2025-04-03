@@ -2,6 +2,8 @@ unclassified:
   scoringLoadBalancer:
     enabled: false
     reportScoresEnabled: true
+    simultaneousBuildsWorkaroundEnabled: true
+    simultaneousBuildsWorkaroundThrottleTime: 2000
     scoringRuleList:
     - nodeLoadScoringRule:
         scale: 20
