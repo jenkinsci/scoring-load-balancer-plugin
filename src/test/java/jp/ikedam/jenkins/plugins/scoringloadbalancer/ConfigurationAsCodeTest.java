@@ -2,26 +2,22 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.casc.misc.junit.jupiter.WithJenkinsConfiguredWithCode;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.BuildResultScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.NodeLoadScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.rules.NodePreferenceScoringRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ConfigurationAsCodeTest {
-
-    @Rule
-    public JenkinsConfiguredWithCodeRule rule = new JenkinsConfiguredWithCodeRule();
+@WithJenkinsConfiguredWithCode
+class ConfigurationAsCodeTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code-test.yml")
-    public void shouldSupportConfigurationAsCode() {
+    void shouldSupportConfigurationAsCode(JenkinsConfiguredWithCodeRule rule) {
         var loadBalancerDescriptors = rule.jenkins.getExtensionList(ScoringLoadBalancer.DescriptorImpl.class);
         assertEquals(1, loadBalancerDescriptors.size());
         assertFalse(loadBalancerDescriptors.get(0).isEnabled());

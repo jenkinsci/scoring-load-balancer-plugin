@@ -24,7 +24,7 @@
 
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import hudson.model.Executor;
 import hudson.model.FreeStyleProject;
@@ -37,34 +37,35 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
-import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.ScoringLoadBalancerJenkinsRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.FailureBuilder;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SleepBuilder;
 import org.jvnet.hudson.test.UnstableBuilder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  *
  */
-public class BuildResultScoringRuleJenkinsTest {
+@WithJenkins
+class BuildResultScoringRuleJenkinsTest {
     private static final int BUILD_TIMEOUT = 10;
     private static final int SLEEP_BEFORE_BUILD = 3;
 
-    @Rule
-    public ScoringLoadBalancerJenkinsRule j = new ScoringLoadBalancerJenkinsRule();
+    private JenkinsRule j;
 
     TestingScoringRule testScoringRule;
     Slave node1;
     Slave node2;
     Slave node3;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule j) throws Exception {
+        this.j = j;
         testScoringRule = new TestingScoringRule();
         node1 = j.createOnlineSlave();
         node2 = j.createOnlineSlave();
@@ -76,9 +77,9 @@ public class BuildResultScoringRuleJenkinsTest {
         descriptor.configure(true, true, false, 0, scoringRule, testScoringRule);
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testScoreSuccess() throws Exception {
+    void testScoreSuccess() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
@@ -129,9 +130,9 @@ public class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testScoreUnstable() throws Exception {
+    void testScoreUnstable() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
@@ -184,9 +185,9 @@ public class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testScoreFailure() throws Exception {
+    void testScoreFailure() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
@@ -239,9 +240,9 @@ public class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testScoreAbort() throws Exception {
+    void testScoreAbort() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
@@ -330,9 +331,9 @@ public class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testNumOfBuilds() throws Exception {
+    void testNumOfBuilds() throws Exception {
         setScoringRule(new BuildResultScoringRule(3, 10, -1, 1, -1, -1));
 
         FreeStyleProject p = j.createFreeStyleProject();
@@ -371,7 +372,9 @@ public class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
     }
 
-    public void testSubTask() throws Exception {
+    @Disabled("TODO: fix me #15")
+    @Test
+    void testSubTask() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 1, -1, -1));
 
         FreeStyleProject p = j.createFreeStyleProject();
@@ -392,9 +395,9 @@ public class BuildResultScoringRuleJenkinsTest {
         }
     }
 
-    @Ignore("TODO: fix me #15")
+    @Disabled("TODO: fix me #15")
     @Test
-    public void testDescriptor() {
+    void testDescriptor() {
         assertNotNull(j.jenkins.getDescriptorOrDie(BuildResultScoringRule.class));
     }
 }
