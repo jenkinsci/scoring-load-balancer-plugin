@@ -34,7 +34,10 @@ import hudson.model.queue.MappingWorksheet.Mapping;
 import hudson.model.queue.MappingWorksheet.WorkChunk;
 import hudson.model.queue.SubTask;
 import hudson.util.FormValidation;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesScore;
@@ -145,27 +148,33 @@ public class BuildResultScoringRule extends ScoringRule {
             AbstractProject<?, ?> project = (AbstractProject<?, ?>) subtask;
 
             Set<Node> nodeSet = new HashSet<Node>(nodesScore.getNodes());
+            // Initialize a map to accumulate scores per node
+            Map<Node, Integer> nodeScoreMap = new HashMap<>();
+
             AbstractBuild<?, ?> build = project.getLastBuild();
-            for (int pastNum = 0;
-                    pastNum < getNumberOfBuilds() && build != null;
-                    ++pastNum, build = build.getPreviousBuild()) {
+            for (int pastNum = 0; pastNum < getNumberOfBuilds()
+                    && build != null; ++pastNum, build = build.getPreviousBuild()) {
                 Node node = build.getBuiltOn();
-                if (!nodeSet.contains(node)) {
+                if (!nodeSet.contains(node) || node == null) {
                     continue;
                 }
 
                 int scale = getScale() + getScaleAdjustForOlder() * pastNum;
+                int score = 0;
 
                 if (Result.SUCCESS == build.getResult()) {
-                    nodesScore.addScore(node, getScoreForSuccess() * scale);
-                    nodeSet.remove(node);
+                    score = getScoreForSuccess() * scale;
                 } else if (Result.FAILURE == build.getResult()) {
-                    nodesScore.addScore(node, getScoreForFailure() * scale);
-                    nodeSet.remove(node);
+                    score = getScoreForFailure() * scale;
                 } else if (Result.UNSTABLE == build.getResult()) {
-                    nodesScore.addScore(node, getScoreForUnstable() * scale);
-                    nodeSet.remove(node);
+                    score = getScoreForUnstable() * scale;
                 }
+                // Accumulate score for the node
+                nodeScoreMap.put(node, nodeScoreMap.getOrDefault(node, 0) + score);
+            }
+            // Apply accumulated scores to nodesScore
+            for (Map.Entry<Node, Integer> entry : nodeScoreMap.entrySet()) {
+                nodesScore.addScore(entry.getKey(), entry.getValue());
             }
         }
 
