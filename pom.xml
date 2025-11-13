@@ -10,7 +10,7 @@
 
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>scoring-load-balancer</artifactId>
-  <version>${changelist}</version>
+  <version>${revision}.${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Scoring Load Balancer</name>
@@ -48,6 +48,8 @@
   </issueManagement>
 
   <properties>
+    <!-- Bump when baseline was bumped -->
+    <revision>230</revision>
     <changelist>999999-SNAPSHOT</changelist>
     <jenkins.baseline>2.516</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
