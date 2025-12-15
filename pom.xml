@@ -49,7 +49,7 @@
 
   <properties>
     <!-- Bump when baseline was bumped -->
-    <revision>231</revision>
+    <revision>232</revision>
     <changelist>999999-SNAPSHOT</changelist>
     <jenkins.baseline>2.528</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
