@@ -27,6 +27,7 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences;
 import static org.junit.jupiter.api.Assertions.*;
 
 import hudson.model.FreeStyleProject;
+import java.util.Objects;
 import org.htmlunit.html.HtmlCheckBoxInput;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
@@ -36,7 +37,12 @@ import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
+ * Tests the configuration of {@link BuildPreferenceJobProperty}
+ * on a {@link FreeStyleProject}.
  *
+ * <p>Verifies that the job property is initially absent, is added when
+ * its configuration checkbox is enabled, and is removed when the
+ * checkbox is disabled.</p>
  */
 @WithJenkins
 class BuildPreferenceJobPropertyTest {
@@ -61,7 +67,7 @@ class BuildPreferenceJobPropertyTest {
         }
 
         p = (FreeStyleProject) j.jenkins.getItem(p.getName());
-        assertNotNull(p.getProperty(BuildPreferenceJobProperty.class));
+        assertNotNull(Objects.requireNonNull(p).getProperty(BuildPreferenceJobProperty.class));
 
         // disable BuildPreferenceJobProperty
         {
@@ -76,6 +82,6 @@ class BuildPreferenceJobPropertyTest {
         }
 
         p = (FreeStyleProject) j.jenkins.getItem(p.getName());
-        assertNull(p.getProperty(BuildPreferenceJobProperty.class));
+        assertNull(Objects.requireNonNull(p).getProperty(BuildPreferenceJobProperty.class));
     }
 }

@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 
 /**
- *
+ * Tests the {@link BuildPreference} class without requiring a Jenkins instance.
  */
 class BuildPreferenceNoJenkinsTest {
 

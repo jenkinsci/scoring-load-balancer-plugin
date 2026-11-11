@@ -54,12 +54,13 @@ import java.util.stream.Collectors;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
+import org.jspecify.annotations.NonNull;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * LoadBalancer using scores of nodes.
- *
+ * <p>
  * Decides the nodes to execute tasks depending on scores of nodes.
  * Scoring is performed by {@link ScoringRule}s enabled in System Configuration page.
  */
@@ -68,7 +69,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
     /**
      * Replaces {@link LoadBalancer} registered to Jenkins to ScoringLoadBalancer.
-     *
+     * <p>
      * The {@link LoadBalancer} originally registered are used as one to fall back.
      */
     @Initializer(after = InitMilestone.PLUGINS_STARTED, fatal = false)
@@ -79,7 +80,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
         q.setLoadBalancer(new ScoringLoadBalancer(fallback));
     }
 
-    private LoadBalancer fallback;
+    private final LoadBalancer fallback;
 
     /**
      * @return {@link LoadBalancer} to fall back
@@ -97,7 +98,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
     /**
      * Return whether this LoadBalancer is enabled.
-     *
+     * <p>
      * If disabled, simply call LoadBalancer to fall back.
      *
      * @return whether this LoadBalancer is enabled.
@@ -157,7 +158,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      * @see hudson.model.LoadBalancer#map(hudson.model.Queue.Task, hudson.model.queue.MappingWorksheet)
      */
     @Override
-    public Mapping map(Task task, MappingWorksheet worksheet) {
+    public Mapping map(@NonNull Task task, MappingWorksheet worksheet) {
         if (isSimultaneousBuildsWorkaroundEnabled()) {
             // Jenkins provides incomplete executors for simultaneous builds - throttle build starts:
             // abort if last call isn't that long ago:
@@ -200,7 +201,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
     /**
      * Decide nodes to execute subtasks on.
-     *
+     * <p>
      * Decides in a　greedy and recursive way as following steps:
      * <ol>
      *   <li>Pick the first subtask</li>
@@ -212,14 +213,14 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      *   <li>If assignment is succeeded, return that assignment.</li>
      * </ol>
      *
-     * @param m
-     * @param task
-     * @param worksheet
-     * @param scoringRuleList
-     * @param targetWorkChunk
-     * @return　whether an proper assignment is found.
+     * @param m Mapping
+     * @param task Task
+     * @param worksheet MappingWorkSheet
+     * @param scoringRuleList List
+     * @param targetWorkChunk Integer
+     * @return　whether a proper assignment is found.
      *
-     * @throws Exception
+     * @throws Exception error
      */
     private boolean assignGreedily(
             Mapping m, Task task, MappingWorksheet worksheet, List<ScoringRule> scoringRuleList, int targetWorkChunk)
@@ -266,19 +267,19 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
     /**
      * sort {@link ExecutorChunk}s (that is, nodes) by scores.
      *
-     * @param executors
-     * @param nodesScore
+     * @param executors List of executors
+     * @param nodesScore NodeScore
      */
     protected void sortExecutors(List<ExecutorChunk> executors, NodesScore nodesScore) {
         Collections.shuffle(executors);
-        Collections.sort(executors, nodesScore.new ExecutorComparator());
+        executors.sort(nodesScore.new ExecutorComparator());
     }
 
     /**
      * Log scores. For diagnostics purpose.
      *
-     * @param executors
-     * @param nodesScore
+     * @param executors List
+     * @param nodesScore NodeScore
      */
     protected void reportScores(WorkChunk wc, List<ExecutorChunk> executors, NodesScore nodesScore) {
         List<String> lines = new ArrayList<String>();
@@ -324,7 +325,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Returns whether to log scores of nodes in each load balancing calculation.
-         *
+         * <p>
          * Enabling this makes many outputs, and not good for production environments.
          *
          * @return whether to log scores of nodes
@@ -370,7 +371,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Constructor.
-         *
+         * <p>
          * Restore configurations.
          */
         public DescriptorImpl() {
@@ -383,7 +384,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
          * @param req
          * @param json
          *
-         * @return
+         * @return boolean
          *
          * @see hudson.model.Descriptor#configure(org.kohsuke.stapler.StaplerRequest, net.sf.json.JSONObject)
          */
@@ -475,7 +476,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Returns the name to display.
-         *
+         * <p>
          * Displayed in System Configuration page as a section title.
          *
          * @return the name to display
@@ -502,16 +503,16 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
      * A node with a larger score is preferred to use.
      */
     public static class NodesScore {
-        private Map<Node, ExecutorChunk> nodeExecutorMap;
-        private Map<ExecutorChunk, Integer> executorScoreMap;
-        private Set<ExecutorChunk> invalidExecutors;
+        private final Map<Node, ExecutorChunk> nodeExecutorMap;
+        private final Map<ExecutorChunk, Integer> executorScoreMap;
+        private final Set<ExecutorChunk> invalidExecutors;
 
         /**
          * Constructor
+         * <p>
+         * Initialize scores for each node to 0.
          *
-         * Initialize scores for each nodes to 0.
-         *
-         * @param executors
+         * @param executors Collection
          */
         public NodesScore(Collection<ExecutorChunk> executors) {
             nodeExecutorMap = new HashMap<Node, ExecutorChunk>(executors.size());
@@ -526,7 +527,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Get nodes to score.
-         *
+         * <p>
          * same to retrieve {@link ExecutorChunk#node} for {@link NodesScore#getExecutorChunks()}
          *
          * @return nodes to score.
@@ -556,7 +557,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Add score to the node.
-         *
+         * <p>
          * Same to call {@link NodesScore#addScore(Node, int)} for executor.node
          *
          * @param executor
@@ -577,7 +578,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Reset the score of the node to 0.
-         *
+         * <p>
          * Same to call {@link NodesScore#resetScore(Node)} for executor.node
          *
          * @param executor
@@ -598,7 +599,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Get the score of the node.
-         *
+         * <p>
          * Same to call {@link NodesScore#getScore(Node)} for executor.node.
          *
          * @param executor
@@ -610,7 +611,7 @@ public class ScoringLoadBalancer extends LoadBalancer implements Describable<Sco
 
         /**
          * Make the task not run on this node.
-         *
+         * <p>
          * Same to call {@link NodesScore#markInvalid(Node)} for executor.node.
          *
          * @param executor

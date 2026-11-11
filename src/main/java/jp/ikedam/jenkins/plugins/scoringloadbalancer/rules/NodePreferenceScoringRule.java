@@ -23,6 +23,8 @@
  */
 package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
+import static java.util.logging.Logger.*;
+
 import hudson.Extension;
 import hudson.Util;
 import hudson.matrix.MatrixConfiguration;
@@ -55,10 +57,10 @@ import org.kohsuke.stapler.verb.POST;
  * Scores nodes depending on preferences of nodes and projects.
  */
 public class NodePreferenceScoringRule extends ScoringRule {
-    private static Logger LOGGER = Logger.getLogger(NodePreferenceScoringRule.class.getName());
+    private static final Logger LOGGER = getLogger(NodePreferenceScoringRule.class.getName());
 
-    private int nodesPreferenceScale;
-    private int projectPreferenceScale;
+    private final int nodesPreferenceScale;
+    private final int projectPreferenceScale;
 
     /**
      * @return the nodesPreferenceScale
@@ -76,7 +78,7 @@ public class NodePreferenceScoringRule extends ScoringRule {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialized with values a user configured.
      *
      * @param nodesPreferenceScale
@@ -104,7 +106,7 @@ public class NodePreferenceScoringRule extends ScoringRule {
         for (Node node : nodesScore.getNodes()) {
             List<BuildPreferenceNodeProperty> prefList =
                     Util.filter(node.getNodeProperties(), BuildPreferenceNodeProperty.class);
-            if (prefList == null || prefList.isEmpty()) {
+            if (prefList.isEmpty()) {
                 continue;
             }
             BuildPreferenceNodeProperty pref = prefList.get(0);
@@ -142,16 +144,14 @@ public class NodePreferenceScoringRule extends ScoringRule {
     }
 
     private BuildPreferenceJobProperty getBuildPreferenceJobProperty(SubTask subtask) {
-        if (!(subtask instanceof Job)) {
+        if (!(subtask instanceof Job<?, ?> job)) {
             return null;
         }
 
-        if (subtask instanceof MatrixConfiguration) {
-            MatrixConfiguration conf = (MatrixConfiguration) subtask;
+        if (subtask instanceof MatrixConfiguration conf) {
             return conf.getParent().getProperty(BuildPreferenceJobProperty.class);
         }
 
-        Job<?, ?> job = (Job<?, ?>) subtask;
         return job.getProperty(BuildPreferenceJobProperty.class);
     }
 
@@ -163,7 +163,7 @@ public class NodePreferenceScoringRule extends ScoringRule {
     public static class DescriptorImpl extends Descriptor<ScoringRule> {
         /**
          * Returns the name to display.
-         *
+         * <p>
          * Displayed in System Configuration page, as a name of a scoring rule.
          *
          * @return the name to display

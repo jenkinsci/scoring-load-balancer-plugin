@@ -32,32 +32,35 @@ import hudson.model.Item;
 import hudson.util.FormValidation;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference.DescriptorImpl;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
- *
+ * Tests the build preference configuration and its interaction with Jenkins.
+ *<p>
+ * These tests use a Jenkins test instance to verify the behavior of
+ * build preference descriptors, including the validation of node label
+ * expressions.
  */
 @WithJenkins
 class BuildPreferenceJenkinsTest {
     Item item = mock(Item.class);
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testDescriptor_doCheckLabelExpressionOk(JenkinsRule j) throws Exception {
         j.createSlave("node1", "label1", null);
         DescriptorImpl descriptor = getDescriptor(j);
 
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master", null);
+            FormValidation v = descriptor.doCheckLabelExpression("built-in", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
 
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master || node1", null);
+            FormValidation v = descriptor.doCheckLabelExpression("built-in || node1", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
 
@@ -67,7 +70,7 @@ class BuildPreferenceJenkinsTest {
         }
 
         {
-            FormValidation v = descriptor.doCheckLabelExpression("  master  ", null);
+            FormValidation v = descriptor.doCheckLabelExpression("  built-in  ", null);
             assertEquals(FormValidation.Kind.OK, v.kind);
         }
     }
@@ -82,12 +85,12 @@ class BuildPreferenceJenkinsTest {
         }
 
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master && node1", null);
+            FormValidation v = descriptor.doCheckLabelExpression("built-in && node1", null);
             assertEquals(FormValidation.Kind.WARNING, v.kind);
         }
 
         {
-            FormValidation v = descriptor.doCheckLabelExpression("master && node1", item);
+            FormValidation v = descriptor.doCheckLabelExpression("built-in && node1", item);
             assertEquals(FormValidation.Kind.WARNING, v.kind);
         }
     }
@@ -121,11 +124,14 @@ class BuildPreferenceJenkinsTest {
         }
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testDescriptor_doAutoCompleteLabelExpression(JenkinsRule j) throws Exception {
         j.createSlave("node1", "label1", null);
         j.createSlave("node2", "label1", null);
+
+        // The built-in node's label was "master" in old Jenkins and is "built-in" now.
+        String builtIn = j.jenkins.getSelfLabel().getName();
+        String builtInPrefix = builtIn.substring(0, 1);
 
         DescriptorImpl descriptor = getDescriptor(j);
         {
@@ -144,8 +150,8 @@ class BuildPreferenceJenkinsTest {
         }
 
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("m", null);
-            assertEquals(Arrays.asList("master"), c.getValues());
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression(builtInPrefix, null);
+            assertEquals(List.of(builtIn), c.getValues());
         }
 
         {
@@ -155,7 +161,7 @@ class BuildPreferenceJenkinsTest {
 
         {
             AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("l", null);
-            assertEquals(Arrays.asList("label1"), c.getValues());
+            assertEquals(List.of("label1"), c.getValues());
         }
 
         {
@@ -164,8 +170,8 @@ class BuildPreferenceJenkinsTest {
         }
 
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("label1 || m", null);
-            assertEquals(Arrays.asList("master"), c.getValues());
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("label1 || " + builtInPrefix, null);
+            assertEquals(List.of(builtIn), c.getValues());
         }
 
         {
@@ -174,12 +180,12 @@ class BuildPreferenceJenkinsTest {
         }
 
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("  m  ", null);
-            assertEquals(Arrays.asList("master"), c.getValues());
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("  " + builtInPrefix + "  ", null);
+            assertEquals(List.of(builtIn), c.getValues());
         }
 
         {
-            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("!m", null);
+            AutoCompletionCandidates c = descriptor.doAutoCompleteLabelExpression("!" + builtInPrefix, null);
             assertEquals(Collections.emptyList(), c.getValues());
         }
     }

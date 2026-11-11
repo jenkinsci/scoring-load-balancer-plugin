@@ -44,13 +44,12 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreference
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.preferences.BuildPreferenceNodeProperty;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
- *
+ * NodePreferenceScoringRuleJenkinsTest
  */
 @WithJenkins
 class NodePreferenceScoringRuleJenkinsTest {
@@ -71,7 +70,6 @@ class NodePreferenceScoringRuleJenkinsTest {
         descriptor.configure(true, true, false, 0, scoringRule, testScoringRule);
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testNodePreference() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(4, -1));
@@ -90,7 +88,6 @@ class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testProjectPreference() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(4, -1));
@@ -98,9 +95,11 @@ class NodePreferenceScoringRuleJenkinsTest {
         DumbSlave node1 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
         DumbSlave node2 = j.createOnlineSlave(LabelExpression.parseExpression("nodelabel"));
 
+        String builtIn = j.jenkins.getSelfLabel().getName();
+
         FreeStyleProject p = j.createFreeStyleProject();
         p.addProperty(new BuildPreferenceJobProperty(Arrays.asList(
-                new BuildPreference("master", 1),
+                new BuildPreference(builtIn, 1),
                 new BuildPreference("nodelabel", 2),
                 new BuildPreference(String.format("%s && nodelabel", node1.getNodeName()), 4))));
 
@@ -112,7 +111,6 @@ class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(-2, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testProjectPreferenceForMatrix() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(4, 2));
@@ -123,7 +121,7 @@ class NodePreferenceScoringRuleJenkinsTest {
         MatrixProject p = j.createProject(MatrixProject.class);
         p.setAxes(new AxisList(new TextAxis("axis1", "value1")));
         p.addProperty(new BuildPreferenceJobProperty(Arrays.asList(
-                new BuildPreference("master", 1),
+                new BuildPreference(j.jenkins.getSelfLabel().getName(), 1),
                 new BuildPreference("nodelabel", 2),
                 new BuildPreference(String.format("%s && nodelabel", node1.getNodeName()), 4))));
         p.save();
@@ -140,7 +138,6 @@ class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(4, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testProjectPreferenceNull() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(1, -1));
@@ -159,7 +156,6 @@ class NodePreferenceScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testProjectPreferenceEmpty() throws Exception {
         setScoringRule(new NodePreferenceScoringRule(1, -1));
