@@ -66,7 +66,7 @@ class SimultaneousBuildsWorkaroundTest {
         this.j = j;
         scoringRule = new TestingScoringRule();
         descriptor = (DescriptorImpl) j.jenkins.getDescriptorOrDie(ScoringLoadBalancer.class);
-        node0 = createOnlineSlave("node0", 4);
+        node0 = createOnlineSlave();
     }
 
     @Test
@@ -133,7 +133,7 @@ class SimultaneousBuildsWorkaroundTest {
         return b2;
     }
 
-    private DumbSlave createOnlineSlave(String label, int numExecutor) throws Exception {
+    private DumbSlave createOnlineSlave() throws Exception {
         DumbSlave slave;
         synchronized (j.jenkins) {
             String nodeName = String.format("slave%d", j.jenkins.getNodes().size());
@@ -141,8 +141,8 @@ class SimultaneousBuildsWorkaroundTest {
                     nodeName,
                     new File(j.jenkins.getRootDir(), "agent-work-dirs/" + nodeName).getAbsolutePath(),
                     j.createComputerLauncher(null));
-            slave.setLabelString(label);
-            slave.setNumExecutors(numExecutor);
+            slave.setLabelString("node0");
+            slave.setNumExecutors(4);
             slave.setRetentionStrategy(RetentionStrategy.NOOP);
             j.jenkins.addNode(slave);
         }

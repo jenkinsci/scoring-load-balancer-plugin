@@ -46,8 +46,8 @@ public class BuildPreferenceJobProperty extends JobProperty<AbstractProject<?, ?
 
     /**
      * Returns the list of preferences.
-     *
-     * Each preferences holds configuration that which nodes are how preferred for this project.
+     * <p>
+     * Each preference holds configuration that which nodes are how preferred for this project.
      *
      * @return the list of preferences
      */
@@ -57,7 +57,7 @@ public class BuildPreferenceJobProperty extends JobProperty<AbstractProject<?, ?
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialized with values a user configured.
      *
      * @param buildPreferenceList
@@ -83,7 +83,7 @@ public class BuildPreferenceJobProperty extends JobProperty<AbstractProject<?, ?
 
         /**
          * Returns the name to display
-         *
+         * <p>
          * Displayed in Project Configuration page as a property name.
          *
          * @return the name to display

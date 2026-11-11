@@ -46,16 +46,16 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
 /**
- * A score keeper depends on build results on each nodes.
+ * A scorekeeper depends on build results on each nodes.
  */
 public class BuildResultScoringRule extends ScoringRule {
     // default values are defined in config.jelly
-    private int numberOfBuilds;
-    private int scale;
-    private int scaleAdjustForOlder;
-    private int scoreForSuccess;
-    private int scoreForUnstable;
-    private int scoreForFailure;
+    private final int numberOfBuilds;
+    private final int scale;
+    private final int scaleAdjustForOlder;
+    private final int scoreForSuccess;
+    private final int scoreForUnstable;
+    private final int scoreForFailure;
 
     /**
      * @return the numberOfBuilds
@@ -101,7 +101,7 @@ public class BuildResultScoringRule extends ScoringRule {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialized with values a user configured.
      *
      * @param numberOfBuilds
@@ -180,7 +180,7 @@ public class BuildResultScoringRule extends ScoringRule {
     public static class DescriptorImpl extends Descriptor<ScoringRule> {
         /**
          * Returns the name to display.
-         *
+         * <p>
          * Displayed in System Configuration page, as a name of a scoring rule.
          *
          * @return the name to display

@@ -40,10 +40,10 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.NodesSc
 public abstract class ScoringRule extends AbstractDescribableImpl<ScoringRule> implements ExtensionPoint {
     /**
      * Score the nodes.
-     *
+     * <p>
      * Update scores by calling methods of nodesScore.
      * A node with a larger score is preferred to use.
-     *
+     * <p>
      * If you want not to have scores updated with subsequent {@link ScoringRule}s, return false.
      *
      * @param task the root task to build.
