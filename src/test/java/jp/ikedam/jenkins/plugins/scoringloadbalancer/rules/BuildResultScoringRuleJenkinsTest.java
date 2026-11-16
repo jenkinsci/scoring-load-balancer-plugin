@@ -26,12 +26,9 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer.rules;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import hudson.model.Executor;
-import hudson.model.FreeStyleProject;
-import hudson.model.Node;
-import hudson.model.Result;
-import hudson.model.Slave;
+import hudson.model.*;
 import hudson.model.labels.LabelExpression;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
@@ -40,7 +37,6 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.FailureBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -49,7 +45,11 @@ import org.jvnet.hudson.test.UnstableBuilder;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
+ * Tests {@link BuildResultScoringRule} using a Jenkins test instance.
  *
+ * <p>Verifies that node scores are calculated correctly based on build results,
+ * including successful, unstable, failed, and aborted builds, as well as
+ * build-count limits and subtask execution.</p>
  */
 @WithJenkins
 class BuildResultScoringRuleJenkinsTest {
@@ -77,16 +77,16 @@ class BuildResultScoringRuleJenkinsTest {
         descriptor.configure(true, true, false, 0, scoringRule, testScoringRule);
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testScoreSuccess() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
+        String builtIn = j.jenkins.getSelfLabel().getName();
 
         // #1 master success
         // #2 node1 success
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
@@ -107,14 +107,14 @@ class BuildResultScoringRuleJenkinsTest {
         // #5 node1 success
         // #6 master success
         p.getBuildersList().add(new FailureBuilder());
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         p.getBuildersList().clear();
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         // #7 test
@@ -130,23 +130,23 @@ class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testScoreUnstable() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
+        String builtIn = j.jenkins.getSelfLabel().getName();
 
         // #1 master unstable
         // #2 node1 unstable
         p.getBuildersList().add(new UnstableBuilder());
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatus(Result.UNSTABLE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         j.assertBuildStatus(Result.UNSTABLE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         // #3 test (node2)
-        node3.toComputer().disconnect(null);
+        disconnect(node3);
         testScoringRule.clear();
         p.getBuildersList().clear();
         p.setAssignedLabel(null);
@@ -156,20 +156,20 @@ class BuildResultScoringRuleJenkinsTest {
         assertEquals(-9, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
         assertEquals(-10, testScoringRule.nodesScoreList.get(0).getScore(node1));
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
-        node3.toComputer().connect(true);
+        reconnect(node3);
 
         // test only depends on last result.
         // #4 master success
         // #5 node1 unstable
         // #6 master unstable
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         p.getBuildersList().add(new UnstableBuilder());
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         j.assertBuildStatus(Result.UNSTABLE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatus(Result.UNSTABLE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         // #7 test
@@ -185,28 +185,28 @@ class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testScoreFailure() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
+        String builtIn = j.jenkins.getSelfLabel().getName();
 
         // #1 master unstable
         // #2 node1 unstable
         p.getBuildersList().add(new FailureBuilder());
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         // #3 test (node2)
-        node3.toComputer().disconnect(null);
+        disconnect(node3);
         testScoringRule.clear();
         p.getBuildersList().clear();
         p.setAssignedLabel(null);
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
-        node3.toComputer().connect(true);
+        reconnect(node3);
 
         assertEquals(1, testScoringRule.nodesScoreList.size());
         assertEquals(-18, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
@@ -217,14 +217,14 @@ class BuildResultScoringRuleJenkinsTest {
         // #4 master success
         // #5 node1 unstable
         // #6 master unstable
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         p.getBuildersList().add(new FailureBuilder());
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         // #7 test
@@ -240,17 +240,17 @@ class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testScoreAbort() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 2, -1, -2));
 
         FreeStyleProject p = j.createFreeStyleProject();
+        String builtIn = j.jenkins.getSelfLabel().getName();
 
         // #1 master success
         // #2 node1 unstable
         // #3 node2 failure
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
@@ -280,10 +280,10 @@ class BuildResultScoringRuleJenkinsTest {
         // p.scheduleBuild2(0).cancel() seems not work...
         p.getBuildersList().add(new SleepBuilder(60 * 1000));
 
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         p.scheduleBuild2(0);
         Thread.sleep(SLEEP_BEFORE_BUILD * 1000);
-        for (Executor executor : j.jenkins.toComputer().getExecutors()) {
+        for (Executor executor : Objects.requireNonNull(j.jenkins.toComputer()).getExecutors()) {
             if (executor.isBusy()) {
                 executor.interrupt(Result.ABORTED);
             }
@@ -295,8 +295,9 @@ class BuildResultScoringRuleJenkinsTest {
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
         p.scheduleBuild2(0);
         Thread.sleep(SLEEP_BEFORE_BUILD * 1000);
-        assertTrue(node1.toComputer().getExecutors().get(0).isBusy());
-        node1.toComputer().getExecutors().get(0).interrupt(Result.ABORTED);
+        assertTrue(
+                Objects.requireNonNull(node1.toComputer()).getExecutors().get(0).isBusy());
+        Objects.requireNonNull(node1.toComputer()).getExecutors().get(0).interrupt(Result.ABORTED);
         j.waitUntilNoActivityUpTo(BUILD_TIMEOUT * 1000);
         j.assertBuildStatus(Result.ABORTED, p.getLastBuild());
 
@@ -304,8 +305,9 @@ class BuildResultScoringRuleJenkinsTest {
         p.setAssignedLabel(LabelExpression.parseExpression(node2.getNodeName()));
         p.scheduleBuild2(0);
         Thread.sleep(SLEEP_BEFORE_BUILD * 1000);
-        assertTrue(node2.toComputer().getExecutors().get(0).isBusy());
-        node2.toComputer().getExecutors().get(0).interrupt(Result.ABORTED);
+        assertTrue(
+                Objects.requireNonNull(node2.toComputer()).getExecutors().get(0).isBusy());
+        Objects.requireNonNull(node2.toComputer()).getExecutors().get(0).interrupt(Result.ABORTED);
         j.waitUntilNoActivityUpTo(BUILD_TIMEOUT * 1000);
         j.assertBuildStatus(Result.ABORTED, p.getLastBuild());
 
@@ -313,8 +315,9 @@ class BuildResultScoringRuleJenkinsTest {
         p.setAssignedLabel(LabelExpression.parseExpression(node3.getNodeName()));
         p.scheduleBuild2(0);
         Thread.sleep(SLEEP_BEFORE_BUILD * 1000);
-        assertTrue(node3.toComputer().getExecutors().get(0).isBusy());
-        node3.toComputer().getExecutors().get(0).interrupt(Result.ABORTED);
+        assertTrue(
+                Objects.requireNonNull(node3.toComputer()).getExecutors().get(0).isBusy());
+        Objects.requireNonNull(node3.toComputer()).getExecutors().get(0).interrupt(Result.ABORTED);
         j.waitUntilNoActivityUpTo(BUILD_TIMEOUT * 1000);
         j.assertBuildStatus(Result.ABORTED, p.getLastBuild());
 
@@ -331,16 +334,16 @@ class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node3));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testNumOfBuilds() throws Exception {
         setScoringRule(new BuildResultScoringRule(3, 10, -1, 1, -1, -1));
 
         FreeStyleProject p = j.createFreeStyleProject();
+        String builtIn = j.jenkins.getSelfLabel().getName();
 
         // #1 master success
         // #2 node1 success
-        p.setAssignedLabel(LabelExpression.parseExpression("master"));
+        p.setAssignedLabel(LabelExpression.parseExpression(builtIn));
         j.assertBuildStatusSuccess(p.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
 
         p.setAssignedLabel(LabelExpression.parseExpression(node1.getNodeName()));
@@ -372,7 +375,6 @@ class BuildResultScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(j.jenkins));
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testSubTask() throws Exception {
         setScoringRule(new BuildResultScoringRule(10, 10, -1, 1, -1, -1));
@@ -395,9 +397,20 @@ class BuildResultScoringRuleJenkinsTest {
         }
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testDescriptor() {
         assertNotNull(j.jenkins.getDescriptorOrDie(BuildResultScoringRule.class));
+    }
+
+    private void disconnect(Slave node) throws Exception {
+        Computer c = Objects.requireNonNull(node.toComputer());
+        c.disconnect(null).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        c.waitUntilOffline();
+    }
+
+    private void reconnect(Slave node) throws Exception {
+        Computer c = Objects.requireNonNull(node.toComputer());
+        c.connect(true).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        j.waitOnline(node);
     }
 }

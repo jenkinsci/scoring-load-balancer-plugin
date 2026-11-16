@@ -30,16 +30,17 @@ import hudson.model.Node;
 import hudson.model.Queue.Task;
 import hudson.model.queue.SubTask;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * DummySubTask
  */
 public class DummySubTask implements SubTask {
-    private static Logger LOGGER = Logger.getLogger(DummySubTask.class.getName());
-    private String name;
-    private Task owner;
+    private static final Logger LOGGER = Logger.getLogger(DummySubTask.class.getName());
+    private final String name;
+    private final Task owner;
     private Object sameNodeConstraint;
     private Node lastBuiltOn;
     private long duration = 5;
@@ -102,7 +103,8 @@ public class DummySubTask implements SubTask {
 
         @Override
         public void run() {
-            Node node = Computer.currentComputer().getNode();
+            Node node = Objects.requireNonNull(Computer.currentComputer()).getNode();
+            assert node != null;
             LOGGER.info(String.format("%s started on %s", DummySubTask.this.getDisplayName(), node.getNodeName()));
 
             try {

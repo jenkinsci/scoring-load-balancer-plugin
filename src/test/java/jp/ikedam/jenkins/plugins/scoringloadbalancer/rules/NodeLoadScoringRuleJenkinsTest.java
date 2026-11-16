@@ -38,6 +38,7 @@ import hudson.model.listeners.RunListener;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.RetentionStrategy;
 import java.io.File;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -56,11 +57,11 @@ import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
- *
+ * NodeLoadScoringRuleJenkinsTest
  */
 @WithJenkins
 class NodeLoadScoringRuleJenkinsTest {
-    private static int BUILD_TIMEOUT = 10;
+    private static final int BUILD_TIMEOUT = 10;
 
     private static final Lock buildStartLock = new ReentrantLock();
     private static final Condition buildStartCondition = buildStartLock.newCondition();
@@ -77,8 +78,8 @@ class NodeLoadScoringRuleJenkinsTest {
 
     @Test
     void testIdleScore() throws Exception {
-        DumbSlave node1 = createOnlineSlave("node", 3);
-        DumbSlave node2 = createOnlineSlave("node", 2);
+        DumbSlave node1 = createOnlineSlave(3);
+        DumbSlave node2 = createOnlineSlave(2);
 
         setScoringRule(new NodeLoadScoringRule(10, 3, 0));
 
@@ -93,8 +94,10 @@ class NodeLoadScoringRuleJenkinsTest {
         node2Project.getBuildersList().add(new SleepBuilder(60 * 1000));
         node2Project.setConcurrentBuild(true);
 
-        assertEquals(3, node1.toComputer().getExecutors().size());
-        assertEquals(2, node2.toComputer().getExecutors().size());
+        assertEquals(
+                3, Objects.requireNonNull(node1.toComputer()).getExecutors().size());
+        assertEquals(
+                2, Objects.requireNonNull(node2.toComputer()).getExecutors().size());
 
         // node1 idle 3
         // node2 idle 2
@@ -105,7 +108,7 @@ class NodeLoadScoringRuleJenkinsTest {
         assertEquals(60, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node1
-        startBuild(node1Project, BUILD_TIMEOUT);
+        startBuild(node1Project);
 
         // node1 idle 2
         // node2 idle 2
@@ -116,7 +119,7 @@ class NodeLoadScoringRuleJenkinsTest {
         assertEquals(60, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node2
-        startBuild(node2Project, BUILD_TIMEOUT);
+        startBuild(node2Project);
 
         // node1 idle 2
         // node2 idle 1
@@ -126,12 +129,12 @@ class NodeLoadScoringRuleJenkinsTest {
         assertEquals(60, testScoringRule.nodesScoreList.get(0).getScore(node1));
         assertEquals(30, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
-        for (Executor e : node1.toComputer().getExecutors()) {
+        for (Executor e : Objects.requireNonNull(node1.toComputer()).getExecutors()) {
             if (e.isBusy()) {
                 e.interrupt(Result.ABORTED);
             }
         }
-        for (Executor e : node2.toComputer().getExecutors()) {
+        for (Executor e : Objects.requireNonNull(node2.toComputer()).getExecutors()) {
             if (e.isBusy()) {
                 e.interrupt(Result.ABORTED);
             }
@@ -150,7 +153,7 @@ class NodeLoadScoringRuleJenkinsTest {
 
     @Test
     void testIdleScoreForTaskset() throws Exception {
-        DumbSlave node1 = createOnlineSlave("node", 4);
+        DumbSlave node1 = createOnlineSlave(4);
         setScoringRule(new NodeLoadScoringRule(5, 3, 0));
 
         FreeStyleProject testingProject = j.createFreeStyleProject();
@@ -179,8 +182,8 @@ class NodeLoadScoringRuleJenkinsTest {
 
     @Test
     void testBusyScore() throws Exception {
-        DumbSlave node1 = createOnlineSlave("node", 3);
-        DumbSlave node2 = createOnlineSlave("node", 2);
+        DumbSlave node1 = createOnlineSlave(3);
+        DumbSlave node2 = createOnlineSlave(2);
 
         setScoringRule(new NodeLoadScoringRule(10, 0, -2));
 
@@ -195,8 +198,10 @@ class NodeLoadScoringRuleJenkinsTest {
         node2Project.getBuildersList().add(new SleepBuilder(60 * 1000));
         node2Project.setConcurrentBuild(true);
 
-        assertEquals(3, node1.toComputer().getExecutors().size());
-        assertEquals(2, node2.toComputer().getExecutors().size());
+        assertEquals(
+                3, Objects.requireNonNull(node1.toComputer()).getExecutors().size());
+        assertEquals(
+                2, Objects.requireNonNull(node2.toComputer()).getExecutors().size());
 
         // node1 busy 0
         // node2 busy 0
@@ -207,7 +212,7 @@ class NodeLoadScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node1
-        startBuild(node1Project, BUILD_TIMEOUT);
+        startBuild(node1Project);
 
         // node1 busy 1
         // node2 busy 0
@@ -218,9 +223,9 @@ class NodeLoadScoringRuleJenkinsTest {
         assertEquals(0, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
         // build on node1
-        startBuild(node1Project, BUILD_TIMEOUT);
+        startBuild(node1Project);
         // build on node2
-        startBuild(node2Project, BUILD_TIMEOUT);
+        startBuild(node2Project);
 
         // node1 busy 2
         // node2 busy 1
@@ -230,12 +235,12 @@ class NodeLoadScoringRuleJenkinsTest {
         assertEquals(-40, testScoringRule.nodesScoreList.get(0).getScore(node1));
         assertEquals(-20, testScoringRule.nodesScoreList.get(0).getScore(node2));
 
-        for (Executor e : node1.toComputer().getExecutors()) {
+        for (Executor e : Objects.requireNonNull(node1.toComputer()).getExecutors()) {
             if (e.isBusy()) {
                 e.interrupt(Result.ABORTED);
             }
         }
-        for (Executor e : node2.toComputer().getExecutors()) {
+        for (Executor e : Objects.requireNonNull(node2.toComputer()).getExecutors()) {
             if (e.isBusy()) {
                 e.interrupt(Result.ABORTED);
             }
@@ -254,7 +259,7 @@ class NodeLoadScoringRuleJenkinsTest {
 
     @Test
     void testBusyScoreForTaskset() throws Exception {
-        DumbSlave node1 = createOnlineSlave("node", 4);
+        DumbSlave node1 = createOnlineSlave(4);
         setScoringRule(new NodeLoadScoringRule(5, 0, -2));
 
         FreeStyleProject testingProject = j.createFreeStyleProject();
@@ -288,7 +293,7 @@ class NodeLoadScoringRuleJenkinsTest {
                 j.jenkins.getDescriptorOrDie(NodePreferenceScoringRule.class);
     }
 
-    private DumbSlave createOnlineSlave(String label, int numExecutor) throws Exception {
+    private DumbSlave createOnlineSlave(int numExecutor) throws Exception {
         DumbSlave slave;
         synchronized (j.jenkins) {
             String nodeName = String.format("slave%d", j.jenkins.getNodes().size());
@@ -296,7 +301,7 @@ class NodeLoadScoringRuleJenkinsTest {
                     nodeName,
                     new File(j.jenkins.getRootDir(), "agent-work-dirs/" + nodeName).getAbsolutePath(),
                     j.createComputerLauncher(null));
-            slave.setLabelString(label);
+            slave.setLabelString("node");
             slave.setNumExecutors(numExecutor);
             slave.setRetentionStrategy(RetentionStrategy.NOOP);
             j.jenkins.addNode(slave);
@@ -306,11 +311,11 @@ class NodeLoadScoringRuleJenkinsTest {
         return slave;
     }
 
-    private static void startBuild(AbstractProject<?, ?> p, int timeoutsecs) throws InterruptedException {
+    private static void startBuild(AbstractProject<?, ?> p) throws InterruptedException {
         buildStartLock.lock();
         try {
             p.scheduleBuild2(0);
-            assertTrue(buildStartCondition.await(timeoutsecs, TimeUnit.SECONDS));
+            assertTrue(buildStartCondition.await(NodeLoadScoringRuleJenkinsTest.BUILD_TIMEOUT, TimeUnit.SECONDS));
         } finally {
             buildStartLock.unlock();
         }

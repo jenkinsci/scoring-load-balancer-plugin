@@ -43,7 +43,7 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node> {
 
     /**
      * Returns how this node is preferred.
-     *
+     * <p>
      * Larger value is more preferred.
      *
      * @return the preference
@@ -54,7 +54,7 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node> {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialized with values a user configured.
      *
      * @param preference
@@ -71,7 +71,7 @@ public class BuildPreferenceNodeProperty extends NodeProperty<Node> {
     public static class DescriptorImpl extends NodePropertyDescriptor {
         /**
          * Returns the name to display.
-         *
+         * <p>
          * Displayed in Node Configuration page as a property name.
          *
          * @return Returns the name to display.

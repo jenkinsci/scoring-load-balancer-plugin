@@ -32,11 +32,7 @@ import hudson.model.Item;
 import hudson.model.Label;
 import hudson.model.labels.LabelExpression;
 import hudson.util.FormValidation;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import jenkins.model.Jenkins;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.util.ValidationUtil;
 import org.kohsuke.stapler.AncestorInPath;
@@ -46,11 +42,11 @@ import org.kohsuke.stapler.verb.POST;
 
 /**
  * Holds the configuration that which nodes are preferred to use.
- *
+ * <p>
  * Used by {@link BuildPreferenceJobProperty}.
  */
 public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
-    private String labelExpression;
+    private final String labelExpression;
 
     /**
      * Returns the label expression to determine target nodes.
@@ -61,7 +57,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
         return labelExpression;
     }
 
-    private int preference;
+    private final int preference;
 
     /**
      * Returns the preference score for target nodes.
@@ -74,7 +70,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialized with values a user configured.
      *
      * @param labelExpression
@@ -93,7 +89,7 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
     public static class DescriptorImpl extends Descriptor<BuildPreference> {
         /**
          * Returns the name to display.
-         *
+         * <p>
          * Never used.
          *
          * @return the name to display
@@ -160,16 +156,12 @@ public class BuildPreference extends AbstractDescribableImpl<BuildPreference> {
          * Verify the input label expression
          *
          * @param value
-         * @return
+         * @return FormValidation
          */
         @POST
         public FormValidation doCheckLabelExpression(@QueryParameter String value, @AncestorInPath Item item) {
-            if (item == null) // no context
-            {
-                Jenkins.get().checkPermission(Item.CONFIGURE);
-            } else {
-                item.checkPermission(Item.CONFIGURE);
-            }
+            // no context
+            Objects.requireNonNullElseGet(item, Jenkins::get).checkPermission(Item.CONFIGURE);
 
             if (value == null || value.isBlank()) {
                 return FormValidation.error(Messages.BuildPreference_labelExpression_requied());

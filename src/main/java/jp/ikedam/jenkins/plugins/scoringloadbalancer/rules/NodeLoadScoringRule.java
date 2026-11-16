@@ -44,9 +44,9 @@ import org.kohsuke.stapler.verb.POST;
  */
 public class NodeLoadScoringRule extends ScoringRule {
     // default values are defined in config.jelly.
-    private int scale;
-    private int scoreForIdleExecutor;
-    private int scoreForBusyExecutor;
+    private final int scale;
+    private final int scoreForIdleExecutor;
+    private final int scoreForBusyExecutor;
 
     /**
      * @return the scale
@@ -71,7 +71,7 @@ public class NodeLoadScoringRule extends ScoringRule {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialized with values a user configured.
      *
      * @param scale
@@ -126,7 +126,7 @@ public class NodeLoadScoringRule extends ScoringRule {
     public static class DescriptorImpl extends Descriptor<ScoringRule> {
         /**
          * Returns the name to display.
-         *
+         * <p>
          * Displayed in System Configuration page, as a name of a scoring rule.
          *
          * @return the name to display

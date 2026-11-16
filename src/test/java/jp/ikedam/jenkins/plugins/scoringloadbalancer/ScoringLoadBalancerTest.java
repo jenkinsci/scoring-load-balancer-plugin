@@ -26,10 +26,12 @@ package jp.ikedam.jenkins.plugins.scoringloadbalancer;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import hudson.model.Computer;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Slave;
 import hudson.model.labels.LabelExpression;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.ScoringLoadBalancer.DescriptorImpl;
@@ -38,7 +40,6 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRul
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
 import net.sf.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
@@ -245,18 +246,17 @@ class ScoringLoadBalancerTest {
         j.assertBuildStatusSuccess(b2);
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testMultipleTasksShortage() throws Exception {
         descriptor.configure(true, true, false, 0, scoringRule);
         FreeStyleProject p1 = j.createFreeStyleProject();
-        p1.setAssignedLabel(LabelExpression.parseExpression("!master"));
+        p1.setAssignedLabel(LabelExpression.parseExpression("!built-in"));
         FreeStyleProject p2 = j.createFreeStyleProject();
-        p2.setAssignedLabel(LabelExpression.parseExpression("!master"));
+        p2.setAssignedLabel(LabelExpression.parseExpression("!built-in"));
         p1.addProperty(new TriggerOtherProjectProperty(p2));
 
-        node2.toComputer().disconnect(null).get();
-        node3.toComputer().disconnect(null).get();
+        disconnect(node2);
+        disconnect(node3);
 
         assertThrows(TimeoutException.class, () -> p1.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS));
     }
@@ -298,7 +298,6 @@ class ScoringLoadBalancerTest {
         }
     }
 
-    @Disabled("TODO: fix me #15")
     @Test
     void testMultipleTasksWithConstraintShortage() throws Exception {
         descriptor.configure(true, true, false, 0, scoringRule);
@@ -307,7 +306,7 @@ class ScoringLoadBalancerTest {
         DummySubTask p2 = new DummySubTask("Bound task", p1, 5000);
         p2.setSameNodeConstraint(p1);
         p1.addProperty(new TriggerOtherProjectProperty(p2));
-        p1.setAssignedLabel(LabelExpression.parseExpression("!master"));
+        p1.setAssignedLabel(LabelExpression.parseExpression("!built-in"));
 
         assertThrows(TimeoutException.class, () -> {
             // Run on master (only can run on master)
@@ -325,5 +324,17 @@ class ScoringLoadBalancerTest {
                 p1.scheduleBuild2(0).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
             }
         });
+    }
+
+    private void disconnect(Slave node) throws Exception {
+        Computer c = Objects.requireNonNull(node.toComputer());
+        c.disconnect(null).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        c.waitUntilOffline();
+    }
+
+    private void reconnect(Slave node) throws Exception {
+        Computer c = Objects.requireNonNull(node.toComputer());
+        c.connect(true).get(BUILD_TIMEOUT, TimeUnit.SECONDS);
+        j.waitOnline(node);
     }
 }

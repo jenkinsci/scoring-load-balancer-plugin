@@ -34,10 +34,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- *
+ * TriggerOtherProjectProperty
  */
 public class TriggerOtherProjectProperty extends JobProperty<AbstractProject<?, ?>> {
-    private List<SubTask> subTaskList;
+    private final List<SubTask> subTaskList;
 
     public TriggerOtherProjectProperty(SubTask... tasks) {
         subTaskList = Arrays.asList(tasks);
