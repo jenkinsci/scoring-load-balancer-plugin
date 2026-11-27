@@ -37,7 +37,6 @@ import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.DummySubTask;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TestingScoringRule;
 import jp.ikedam.jenkins.plugins.scoringloadbalancer.testutils.TriggerOtherProjectProperty;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
@@ -69,21 +68,10 @@ class SimultaneousBuildsWorkaroundTest {
         node0 = createOnlineSlave();
     }
 
-    @Test
-    @Disabled("Test is unstable, as Jenkins sometimes chooses the correct node without the workaround")
-    void testTwoSimultaneousBuilds_runsOnWrongNodeWithoutWorkaround() throws Exception {
-        // prepare:
-        descriptor.configure(true, true, false, 500, scoringRule);
-
-        FreeStyleBuild b2 = commonTwoSimultaneousBuildsTest();
-
-        // assert:
-        assertEquals(j.jenkins, b2.getBuiltOn()); // without the workaround, the build-in node is erroneously chosen
-
-        assertEquals(j.jenkins, p2.getLastBuiltOn());
-        assertEquals(j.jenkins, d2.getLastBuiltOn());
-    }
-
+    /**
+     * Without the workaround, Jenkins sometimes offers incomplete executors for simultaneous builds and the second
+     * build lands on the built-in node. That race isn't reproducible reliably, so only the fixed behavior is tested.
+     */
     @Test
     void testTwoSimultaneousBuilds_okWithWorkaround() throws Exception {
         // prepare:
